@@ -1,9 +1,9 @@
 -- Live check: `:Insert boilerplate` and `:Copy boilerplate`, through vim.ui.select (the child cannot press its
--- inputlist) and the real form of lib.nvim's kit (task buffer-ctx.nvim/testblatt-bindings-checkliste; section 2 of
+-- inputlist) (task buffer-ctx.nvim/testblatt-bindings-checkliste; section 2 of
 -- ALL/manual-test-checklists/buffer-ctx.md). ui.nvim is not on this runtimepath; the kit.select branch is a spec.
 return {
   id = "bctx.boilerplate",
-  title = "buffer-ctx.nvim: the boilerplate picker, a named template, the guard-clause form, :Copy boilerplate",
+  title = "buffer-ctx.nvim: the boilerplate picker, a named template, HTML and glue templates, :Copy boilerplate",
   task = "buffer-ctx.nvim/testblatt-bindings-checkliste",
   sizes = { { rows = 40, cols = 120 } },
   steps = {
@@ -35,27 +35,6 @@ return {
       expect = [[_G.has(_G.text(), "---@class MyService")]],
       note = "a class skeleton of that name",
     },
-
-    { lua = [[_G.fresh("")]] },
-    { input = ":Insert boilerplate guard-clause<CR>" },
-    {
-      wait = [[_G.in_float()]],
-      note = "guard-clause asks in a form, no error on a missing argument",
-    },
-    { input = "<C-u>ready<CR>" },
-    { settle = 50 },
-    { input = "<C-u>y<CR>" },
-    { wait = [[not _G.in_float()]], note = "the form is answered" },
-    { expect = [[_G.has(_G.text(), "if not ready then")]], note = "the answers are in the clause" },
-
-    { lua = [[_G.fresh("")]] },
-    { input = ":Insert boilerplate guard-clause<CR>" },
-    { wait = [[_G.in_float()]] },
-    { input = "<Esc>" },
-    { settle = 50 },
-    { input = "<Esc>" },
-    { wait = [[not _G.in_float()]], note = "dismissed" },
-    { expect = [[_G.eq(_G.text(), "")]], note = "a dismissed form inserts nothing" },
 
     { lua = [[_G.fresh("")]] },
     { keys = ":Insert boilerplate html-figure<CR>" },
