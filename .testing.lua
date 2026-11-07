@@ -7,7 +7,7 @@ return {
   plugin = "buffer_ctx",
   -- How the spec files are run: "auto" = sniffed per file, "h" = on the project's own TESTS/harness.lua,
   -- "script" = a self-running script in its own process.
-  dialect = "h",
+  dialect = { ["TESTS/sheets_spec.lua"] = "busted", ["*"] = "h" },
   -- Dependencies (directory names) put on the runtimepath: $<NAME>_DIR, .deps/<name>, ../<name>,
   -- stdpath('data')/lazy/<name>.
   deps = { "lib.nvim" },
@@ -16,6 +16,9 @@ return {
   -- call setup() (user commands, keymaps, autocmds) and open buffers, which would otherwise leak
   -- from one file into the next.
   isolated = "file",
+  -- All test sheets run in one spec file, one child editor each: the defaults of 10 s per case and 60 s per
+  -- file are reached under load (fileops, 2026-11-07).
+  timeouts = { case_ms = 30000, file_ms = 300000 },
   -- Environment variables the specs read; a child editor inherits an allowlist only (never secrets).
   env_allow = { "LIB_NVIM_PATH" },
   -- Guards (docs/GUARDS.md): safety nets around every spec; all clean on this suite.
@@ -31,7 +34,8 @@ return {
   guard_allow = {
     -- The specs create throwaway git repositories (git init/commit/rev-parse/checkout) to test
     -- the repo-root detection and repos-relative paths.
-    spawn = { "git" },
+    -- sheets_spec.lua: every test sheet (TESTS/sheets/) runs in a child editor.
+    spawn = { "git", "nvim" },
   },
   -- The runner counts which commands, keymaps and autocommands the specs exercise (docs/SURFACE.md of testing.nvim);
   -- `scripts/test.sh surface` compares that with surface.baseline.json (a regression gate, not a percentage).
