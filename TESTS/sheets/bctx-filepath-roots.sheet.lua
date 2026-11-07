@@ -3,7 +3,7 @@
 return {
   id = "bctx.filepath-roots",
   title = "buffer-ctx.nvim: :Copy filepath repos and env, inside and outside the roots, with $REPOS_DIR unset",
-  task = "buffer-ctx.nvim/testblatt-bindings-checkliste",
+  task = "buffer-ctx.nvim/manual-checklist-run",
   steps = {
     {
       lua = [[dofile(vim.fn.getcwd() .. "/TESTS/sheets/_helpers.lua")

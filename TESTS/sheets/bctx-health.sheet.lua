@@ -3,7 +3,7 @@
 return {
   id = "bctx.health",
   title = "buffer-ctx.nvim: :checkhealth names lib.nvim, the compat commands, the soft deps, each subsystem",
-  task = "buffer-ctx.nvim/testblatt-bindings-checkliste",
+  task = "buffer-ctx.nvim/manual-checklist-run",
   sizes = { { rows = 40, cols = 120 } },
   steps = {
     {

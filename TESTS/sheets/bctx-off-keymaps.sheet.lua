@@ -3,7 +3,7 @@
 return {
   id = "bctx.off-keymaps",
   title = "buffer-ctx.nvim: keymaps = false unbinds every key, commands stay, an explicit mark.keymaps wins",
-  task = "buffer-ctx.nvim/testblatt-bindings-checkliste",
+  task = "buffer-ctx.nvim/manual-checklist-run",
   steps = {
     {
       lua = [[dofile(vim.fn.getcwd() .. "/TESTS/sheets/_helpers.lua")

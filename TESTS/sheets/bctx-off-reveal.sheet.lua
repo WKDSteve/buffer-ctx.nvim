@@ -3,7 +3,7 @@
 return {
   id = "bctx.off-reveal",
   title = "buffer-ctx.nvim: reveal = false removes both commands and keys, the report says disabled",
-  task = "buffer-ctx.nvim/testblatt-bindings-checkliste",
+  task = "buffer-ctx.nvim/manual-checklist-run",
   sizes = { { rows = 40, cols = 120 } },
   steps = {
     {

@@ -4,7 +4,7 @@
 return {
   id = "bctx.mdlink-markdown",
   title = "buffer-ctx.nvim: :Insert mdlink with markdown.nvim gives the text of the fallback",
-  task = "buffer-ctx.nvim/testblatt-bindings-checkliste",
+  task = "buffer-ctx.nvim/manual-checklist-run",
   requires = {
     {
       lua = [[dofile(vim.fn.getcwd() .. "/TESTS/sheets/_helpers.lua").add_deps("markdown.nvim")]],

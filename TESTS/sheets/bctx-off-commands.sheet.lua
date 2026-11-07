@@ -3,7 +3,7 @@
 return {
   id = "bctx.off-commands",
   title = "buffer-ctx.nvim: commands = false removes :Insert and :Copy, the Lua API works, :Format and :Mark stay",
-  task = "buffer-ctx.nvim/testblatt-bindings-checkliste",
+  task = "buffer-ctx.nvim/manual-checklist-run",
   sizes = { { rows = 40, cols = 120 } },
   steps = {
     {

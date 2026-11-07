@@ -3,7 +3,7 @@
 return {
   id = "bctx.mdlink",
   title = "buffer-ctx.nvim: :Insert mdlink, the literal fallback, the cursor in the link, the path modes",
-  task = "buffer-ctx.nvim/testblatt-bindings-checkliste",
+  task = "buffer-ctx.nvim/manual-checklist-run",
   steps = {
     {
       lua = [[dofile(vim.fn.getcwd() .. "/TESTS/sheets/_helpers.lua")

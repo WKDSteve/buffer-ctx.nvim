@@ -3,7 +3,7 @@
 return {
   id = "bctx.boilerplate-form",
   title = "buffer-ctx.nvim: guard-clause asks in a form, the answers are in the clause, a dismissed form inserts nothing",
-  task = "buffer-ctx.nvim/testblatt-bindings-checkliste",
+  task = "buffer-ctx.nvim/manual-checklist-run",
   steps = {
     {
       lua = [[dofile(vim.fn.getcwd() .. "/TESTS/sheets/_helpers.lua")

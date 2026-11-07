@@ -3,7 +3,7 @@
 return {
   id = "bctx.off-reveal-keys",
   title = "buffer-ctx.nvim: reveal = { keymaps = false } unbinds only the two keys, both commands stay",
-  task = "buffer-ctx.nvim/testblatt-bindings-checkliste",
+  task = "buffer-ctx.nvim/manual-checklist-run",
   steps = {
     {
       lua = [[dofile(vim.fn.getcwd() .. "/TESTS/sheets/_helpers.lua")

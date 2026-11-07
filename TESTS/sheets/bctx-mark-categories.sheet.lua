@@ -3,7 +3,7 @@
 return {
   id = "bctx.mark-categories",
   title = "buffer-ctx.nvim: named mark categories: yank and clear filter, a toggle replaces another category",
-  task = "buffer-ctx.nvim/testblatt-bindings-checkliste",
+  task = "buffer-ctx.nvim/manual-checklist-run",
   steps = {
     {
       lua = [[dofile(vim.fn.getcwd() .. "/TESTS/sheets/_helpers.lua")

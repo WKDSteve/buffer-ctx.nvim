@@ -4,7 +4,7 @@
 return {
   id = "bctx.telescope",
   title = "buffer-ctx.nvim: :Telescope buffer_ctx lists the templates, previews lines, guard-clause does not prompt",
-  task = "buffer-ctx.nvim/testblatt-bindings-checkliste",
+  task = "buffer-ctx.nvim/manual-checklist-run",
   sizes = { { rows = 40, cols = 120 } },
   requires = {
     {

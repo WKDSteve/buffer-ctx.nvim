@@ -4,7 +4,7 @@
 return {
   id = "bctx.boilerplate",
   title = "buffer-ctx.nvim: the boilerplate picker, a named template, HTML and glue templates, :Copy boilerplate",
-  task = "buffer-ctx.nvim/testblatt-bindings-checkliste",
+  task = "buffer-ctx.nvim/manual-checklist-run",
   sizes = { { rows = 40, cols = 120 } },
   steps = {
     {

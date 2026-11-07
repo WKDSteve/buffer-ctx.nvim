@@ -3,7 +3,7 @@
 return {
   id = "bctx.format-lines",
   title = "buffer-ctx.nvim: :Format trim, filter, squeeze, sort, unique, case, indent, cite, clear",
-  task = "buffer-ctx.nvim/testblatt-bindings-checkliste",
+  task = "buffer-ctx.nvim/manual-checklist-run",
   steps = {
     {
       lua = [[dofile(vim.fn.getcwd() .. "/TESTS/sheets/_helpers.lua")

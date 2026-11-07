@@ -3,7 +3,7 @@
 return {
   id = "bctx.off-format",
   title = "buffer-ctx.nvim: format = false removes :Format, the report says disabled, the others stay enabled",
-  task = "buffer-ctx.nvim/testblatt-bindings-checkliste",
+  task = "buffer-ctx.nvim/manual-checklist-run",
   sizes = { { rows = 40, cols = 120 } },
   steps = {
     {

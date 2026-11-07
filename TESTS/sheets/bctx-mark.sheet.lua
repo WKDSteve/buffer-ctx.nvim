@@ -3,7 +3,7 @@
 return {
   id = "bctx.mark",
   title = "buffer-ctx.nvim: <S-m> with a count, a range marks the whole range, <C-p> yanks in order, :Mark clear",
-  task = "buffer-ctx.nvim/testblatt-bindings-checkliste",
+  task = "buffer-ctx.nvim/manual-checklist-run",
   steps = {
     {
       lua = [[dofile(vim.fn.getcwd() .. "/TESTS/sheets/_helpers.lua")

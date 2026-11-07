@@ -3,7 +3,7 @@
 return {
   id = "bctx.annotation-snippet",
   title = "buffer-ctx.nvim: annotations, prompted and given, multi-word arguments; snippets by key, prefix and picker",
-  task = "buffer-ctx.nvim/testblatt-bindings-checkliste",
+  task = "buffer-ctx.nvim/manual-checklist-run",
   sizes = { { rows = 30, cols = 100 } },
   steps = {
     {

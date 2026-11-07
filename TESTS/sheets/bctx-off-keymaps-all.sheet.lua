@@ -3,7 +3,7 @@
 return {
   id = "bctx.off-keymaps-all",
   title = "buffer-ctx.nvim: keymaps = false alone leaves <leader>of and <leader>ob unbound too",
-  task = "buffer-ctx.nvim/testblatt-bindings-checkliste",
+  task = "buffer-ctx.nvim/manual-checklist-run",
   sizes = { { rows = 40, cols = 120 } },
   steps = {
     {

@@ -3,7 +3,7 @@
 return {
   id = "bctx.context",
   title = "buffer-ctx.nvim: location with a range, module, timestamp, date, uuid, env, git, linecount, bufnr",
-  task = "buffer-ctx.nvim/testblatt-bindings-checkliste",
+  task = "buffer-ctx.nvim/manual-checklist-run",
   steps = {
     {
       lua = [[dofile(vim.fn.getcwd() .. "/TESTS/sheets/_helpers.lua")

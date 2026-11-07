@@ -4,7 +4,7 @@
 return {
   id = "bctx.imagepaste",
   title = "buffer-ctx.nvim: :Insert imagepaste hands name and path mode over, no :Copy, an error without images.nvim",
-  task = "buffer-ctx.nvim/testblatt-bindings-checkliste",
+  task = "buffer-ctx.nvim/manual-checklist-run",
   steps = {
     {
       lua = [[dofile(vim.fn.getcwd() .. "/TESTS/sheets/_helpers.lua")

@@ -4,7 +4,7 @@
 return {
   id = "bctx.reveal",
   title = "buffer-ctx.nvim: :RevealInFm, :OpenInBrowser, <leader>of, <leader>ob: what they hand over, unnamed buffers",
-  task = "buffer-ctx.nvim/testblatt-bindings-checkliste",
+  task = "buffer-ctx.nvim/manual-checklist-run",
   steps = {
     {
       lua = [[dofile(vim.fn.getcwd() .. "/TESTS/sheets/_helpers.lua")

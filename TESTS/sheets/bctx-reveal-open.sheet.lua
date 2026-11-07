@@ -5,7 +5,7 @@
 return {
   id = "bctx.reveal-open",
   title = "buffer-ctx.nvim: :OpenInBrowser on an unnamed buffer with open.nvim: a warning, no program, no traceback",
-  task = "buffer-ctx.nvim/testblatt-bindings-checkliste",
+  task = "buffer-ctx.nvim/manual-checklist-run",
   requires = {
     {
       lua = [[dofile(vim.fn.getcwd() .. "/TESTS/sheets/_helpers.lua").add_deps("open.nvim")]],

@@ -3,7 +3,7 @@
 return {
   id = "bctx.filepath",
   title = "buffer-ctx.nvim: :Copy filepath in all its forms, the compat commands and the <leader>cn keys",
-  task = "buffer-ctx.nvim/testblatt-bindings-checkliste",
+  task = "buffer-ctx.nvim/manual-checklist-run",
   steps = {
     {
       lua = [[dofile(vim.fn.getcwd() .. "/TESTS/sheets/_helpers.lua")
