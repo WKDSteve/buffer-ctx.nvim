@@ -165,11 +165,6 @@ return function(H)
     local tag, tag_err = git.get("tag")
     H.eq(tag_err, nil, "git.get('tag') succeeds via --always")
     H.ok(tag ~= nil and tag ~= "", "git.get('tag') returns a non-empty description")
-
-    -- ── git: branch mode on a real (non-detached) checkout ──────────────────
-    local branch, branch_err = git.get("branch")
-    H.eq(branch_err, nil, "git.get('branch') succeeds on a normal checkout")
-    H.ok(branch ~= "HEAD", "git.get('branch') is not the literal HEAD placeholder")
   end
 
   -- ── git: real temp repos for the non-repo and detached-HEAD paths ─────────
@@ -193,10 +188,17 @@ return function(H)
     vim.fn.writefile({ "hello" }, repo_dir .. "/file.txt")
     vim.fn.systemlist({ "git", "-C", repo_dir, "add", "." })
     vim.fn.systemlist({ "git", "-C", repo_dir, "commit", "-q", "-m", "init" })
+    -- Branch mode on a checkout with a branch: the temp repo's own, since the plugin's checkout
+    -- may itself be detached (the worktree `scripts/test.sh ci commit` checks a commit in is).
+    H.scratch(repo_dir .. "/file.txt")
+    local branch, branch_err = git.get("branch")
+    H.eq(branch_err, nil, "git.get('branch') succeeds on a normal checkout")
+    H.ok(branch ~= nil and branch ~= "" and branch ~= "HEAD", "git.get('branch') names the branch")
+
     local sha = vim.fn.systemlist({ "git", "-C", repo_dir, "rev-parse", "HEAD" })[1]
     vim.fn.systemlist({ "git", "-C", repo_dir, "checkout", "-q", sha })
 
-    H.scratch(repo_dir .. "/file.txt")
+    -- Still the same buffer on file.txt: now on a detached HEAD.
     local _, detached_err = git.get("branch")
     H.match(detached_err or "", "detached HEAD", "git.get('branch') reports a detached HEAD")
 
