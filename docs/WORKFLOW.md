@@ -106,7 +106,7 @@ trees themselves are opt-out wholesale:
 | Setting | Effect |
 |---|---|
 | `commands = false` | No `:Insert`/`:Copy` at all — use `require("buffer_ctx").insert(...)`/`.copy(...)` from Lua instead |
-| `keymaps = false` | No `<leader>cnl`/`cnm`/`cnf`, commands unaffected |
+| `keymaps = false` | No key at all (`<leader>cnl`/`cnm`/`cnf`, `<S-m>`/`<C-p>`, `<leader>of`/`ob`) unless `mark.keymaps`/`reveal.keymaps` names one, commands unaffected |
 | `format = false` | No `:Format` command, no format keymaps to disable (it has none) |
 | `mark = false` | No `:Mark`, no `<S-m>`/`<C-p>`, no `BufferCtxMarkCleanup` autocmd registered |
 

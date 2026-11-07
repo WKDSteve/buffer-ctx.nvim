@@ -10,9 +10,10 @@
 | `<leader>of` | `:RevealInFm` (reveal current buffer in the system file manager) |
 | `<leader>ob` | `:OpenInBrowser` (open current buffer in the browser) |
 
-All keymaps are configurable. Set `keymaps = false` to disable the core 3;
-set `mark = { keymaps = false }` to disable the mark keymaps; set
-`reveal = { keymaps = false }` to disable the reveal keymaps.
+All keymaps are configurable. Set `keymaps = false` to disable every one of
+them; an explicit `mark.keymaps` / `reveal.keymaps` table still wins. Set
+`mark = { keymaps = false }` to disable only the mark keymaps,
+`reveal = { keymaps = false }` to disable only the reveal keymaps.
 
 When [which-key.nvim](https://github.com/folke/which-key.nvim) is installed,
 the `<leader>cn` prefix is automatically labeled "buffer-ctx: copy context".
