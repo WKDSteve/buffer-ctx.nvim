@@ -724,7 +724,8 @@ STYLE ~
   `ROMAN`    I. II. III.
 
 sep=SEP ~
-  Separator string after each label. Default: `". "`.
+  Separator string after each label. Default: `". "`. Quote it to give it a
+  space: `sep=") "`. Unquoted, `sep=)` has none.
 
 start=N ~
   First counter value. Default: `1`.
@@ -738,7 +739,8 @@ Examples: >
   :Format enum                     → 1. foo  2. bar  (decimal, inline)
   :Format enum roman               → i. foo  ii. bar
   :Format enum alpha inline=false  → a. foo\nb. bar
-  :Format enum sep=) start=3       → 3) foo  4) bar
+  :Format enum sep=") " start=3    → 3) foo  4) bar
+  :Format enum sep=) start=3       → 3)foo  4)bar
 <
 
 ------------------------------------------------------------------------------

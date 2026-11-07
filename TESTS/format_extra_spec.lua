@@ -263,6 +263,28 @@ return function(H)
     "Format enum with an explicit range enumerates that range's tokens"
   )
 
+  vim.api.nvim_buf_set_lines(buf_range, 0, -1, false, { "un", "deux" })
+  vim.cmd([[1,2Format2 enum roman sep=") "]])
+  H.eq(
+    table.concat(vim.api.nvim_buf_get_lines(buf_range, 0, -1, false), "\n"),
+    "i) un\nii) deux",
+    "Format enum takes a quoted separator with a space"
+  )
+  vim.api.nvim_buf_set_lines(buf_range, 0, -1, false, { "un", "deux" })
+  vim.cmd([[1,2Format2 enum sep=")"]])
+  H.eq(
+    table.concat(vim.api.nvim_buf_get_lines(buf_range, 0, -1, false), "\n"),
+    "1)un\n2)deux",
+    "Format enum takes a quoted separator without a space"
+  )
+  vim.api.nvim_buf_set_lines(buf_range, 0, -1, false, { "un", "deux" })
+  pcall(vim.cmd, [[1,2Format2 enum sep=") ]])
+  H.eq(
+    table.concat(vim.api.nvim_buf_get_lines(buf_range, 0, -1, false), "\n"),
+    "un\ndeux",
+    "Format enum refuses a separator without a closing quote"
+  )
+
   vim.bo[buf_range].textwidth = 0
   vim.api.nvim_buf_set_lines(
     buf_range,

@@ -214,11 +214,47 @@ local function setup_enum_lines()
   end
 
   ---@internal
+  ---The command line arrives split on whitespace, so `sep=") "` is the two tokens `sep=")` and `"`. Put a quoted
+  ---`sep=` back together: it is the only way to a separator with a space, and a space is what the default has.
+  ---(A run of several spaces inside the quotes comes back as one.)
+  ---@param args string[]
+  ---@return string[] joined, string|nil err
+  local function join_quoted_sep(args)
+    local out, i = {}, 1
+    while i <= #args do
+      local quote, rest = args[i]:match("^[sS][eE][pP]=([\"'])(.*)$")
+      if not quote then
+        out[#out + 1] = args[i]
+      else
+        local parts = { rest }
+        while parts[#parts]:sub(-1) ~= quote or (#parts == 1 and rest == "") do
+          i = i + 1
+          if i > #args then
+            return out, "sep= has no closing quote"
+          end
+          parts[#parts + 1] = args[i]
+        end
+        local value = table.concat(parts, " "):sub(1, -2)
+        if value == "" then
+          return out, "sep= is empty"
+        end
+        out[#out + 1] = "sep=" .. value
+      end
+      i = i + 1
+    end
+    return out, nil
+  end
+
+  ---@internal
   ---@param args string[]
   ---@return table opts, string|nil err
   local function parse_enum_args(args)
     local opts = {}
-    for _, raw in ipairs(args) do
+    local joined, quote_err = join_quoted_sep(args)
+    if quote_err then
+      return opts, quote_err
+    end
+    for _, raw in ipairs(joined) do
       local key, val = raw:match("^([%w_]+)=(.+)$")
       if key and val then
         key = key:lower()
