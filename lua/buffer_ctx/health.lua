@@ -102,36 +102,32 @@ function M.check()
     vim.health.warn("buffer_ctx.bindings failed to load")
   end
 
-  if composer_ok then
-    composer_mod.checkhealth("Insert")
-    composer_mod.checkhealth("Copy")
-  end
-
-  if vim.fn.exists(":CopyFilepathAbsolute") == 2 then
-    vim.health.ok(":CopyFilepathAbsolute compat command registered")
-  else
-    vim.health.info(":CopyFilepathAbsolute compat command not found (call setup() first)")
-  end
-
-  if vim.fn.exists(":CopyFilepathRelative") == 2 then
-    vim.health.ok(":CopyFilepathRelative compat command registered")
-  else
-    vim.health.info(":CopyFilepathRelative compat command not found (call setup() first)")
-  end
-
-  if vim.fn.exists(":CopyFilepathRepos") == 2 then
-    vim.health.ok(":CopyFilepathRepos compat command registered")
-  else
-    vim.health.info(":CopyFilepathRepos compat command not found (call setup() first)")
-  end
-
-  if vim.fn.exists(":CopyFilepathEnv") == 2 then
-    vim.health.ok(":CopyFilepathEnv compat command registered")
-  else
-    vim.health.info(":CopyFilepathEnv compat command not found (call setup() first)")
-  end
-
   local cfg_ok, cfg_mod = pcall(require, "buffer_ctx.config")
+
+  -- `commands = false` turns :Insert, :Copy and their compat commands off on purpose: asking
+  -- the composer about them would be an ERROR ("verb is not registered") for a choice.
+  if cfg_ok and cfg_mod.get().commands == false then
+    vim.health.info(":Insert/:Copy disabled (commands = false in opts)")
+  else
+    if composer_ok then
+      composer_mod.checkhealth("Insert")
+      composer_mod.checkhealth("Copy")
+    end
+
+    for _, name in ipairs({
+      "CopyFilepathAbsolute",
+      "CopyFilepathRelative",
+      "CopyFilepathRepos",
+      "CopyFilepathEnv",
+    }) do
+      if vim.fn.exists(":" .. name) == 2 then
+        vim.health.ok((":%s compat command registered"):format(name))
+      else
+        vim.health.info((":%s compat command not found (call setup() first)"):format(name))
+      end
+    end
+  end
+
   if cfg_ok and type(cfg_mod.issues) == "function" then
     local issues = cfg_mod.issues()
     if #issues > 0 then

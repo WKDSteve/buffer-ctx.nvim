@@ -205,6 +205,23 @@ return function(H)
   local health_disabled_ok = pcall(require("buffer_ctx.health").check)
   H.ok(health_disabled_ok, "health.check() does not error with format/mark/reveal disabled")
 
+  -- ── health: `commands = false` is a choice, not a fault ───────────────────
+  -- The composer's own report is an ERROR for a verb that is not registered; this file has
+  -- registered :Insert already, so what is checked is that the composer is not asked.
+  config.setup({ commands = false })
+  local composer = require("lib.nvim.bindings.usercmd.composer")
+  local real_checkhealth = composer.checkhealth
+  local asked_about = {}
+  composer.checkhealth = function(name)
+    asked_about[name] = true
+  end
+  local health_off_ok = pcall(require("buffer_ctx.health").check)
+  composer.checkhealth = real_checkhealth
+  H.ok(health_off_ok, "health.check() does not error with commands = false")
+  H.eq(asked_about.Insert, nil, "health.check() does not ask about :Insert with commands = false")
+  H.eq(asked_about.Copy, nil, "health.check() does not ask about :Copy with commands = false")
+  H.eq(asked_about.Format, true, "health.check() still asks about :Format")
+
   -- ── health: only mark disabled — the reveal section (which comes after
   -- mark's in the report) must still run rather than being skipped. A bare
   -- pcall isn't enough to catch that regression (an early `return` out of
