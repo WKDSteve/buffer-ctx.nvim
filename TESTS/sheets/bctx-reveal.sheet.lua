@@ -75,6 +75,5 @@ return {
     "The file manager opens with the folder, the file selected, and comes to the foreground (Windows)",
     "An .html file opens in the default browser; a .md or .png in the application the OS has for it",
     "With the real open.nvim: :OpenInBrowser opens the buffer, no target picker pops up",
-    "With the real open.nvim, :OpenInBrowser on an unnamed buffer warns, no program, no traceback",
   },
 }

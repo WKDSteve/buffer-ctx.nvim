@@ -4,6 +4,7 @@ return {
   id = "bctx.off-keymaps-all",
   title = "buffer-ctx.nvim: keymaps = false alone leaves <leader>of and <leader>ob unbound too",
   task = "buffer-ctx.nvim/testblatt-bindings-checkliste",
+  sizes = { { rows = 40, cols = 120 } },
   steps = {
     {
       lua = [[dofile(vim.fn.getcwd() .. "/TESTS/sheets/_helpers.lua")
@@ -13,5 +14,10 @@ return {
     { expect = [[not _G.bound(" ob")]], note = "<leader>ob is not bound" },
     { expect = [[not _G.bound("M")]], note = "<S-m> is not bound" },
     { expect = [[_G.eq(vim.fn.exists(":OpenInBrowser"), 2)]], note = "the command stays" },
+    { keys = ":checkhealth buffer_ctx<CR>" },
+    { wait = [[#_G.report("format subsystem enabled") == 1]], note = "format is not misreported" },
+    { expect = [[#_G.report("mark subsystem enabled") == 1]], note = "mark neither" },
+    { expect = [[#_G.report("reveal subsystem enabled") == 1]], note = "reveal neither" },
+    { expect = [[_G.eq(#_G.report("ERROR"), 0)]], note = "no error line" },
   },
 }

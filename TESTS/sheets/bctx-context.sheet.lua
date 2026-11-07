@@ -29,6 +29,10 @@ return {
     { keys = ":Copy module lua_ls<CR>" },
     { expect = [[_G.eq(_G.clip(), "---@module 'foo.bar'")]], note = "the @module line" },
 
+    { lua = [[vim.api.nvim_set_current_line("")]] },
+    { keys = ":Insert module<CR>" },
+    { expect = [[_G.eq(_G.line(), 'require("foo.bar")')]], note = "inserted at the cursor" },
+
     { lua = [[_G.fresh("x"); _G.forget(); vim.api.nvim_buf_set_name(0, _G.root .. "/notes.md")]] },
     { keys = ":Insert module<CR>", note = "a buffer outside /lua/" },
     { expect = [[_G.noted("not inside a /lua/ directory")]], note = "a readable notification" },

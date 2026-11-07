@@ -4,6 +4,7 @@ return {
   id = "bctx.off-commands",
   title = "buffer-ctx.nvim: commands = false removes :Insert and :Copy, the Lua API works, :Format and :Mark stay",
   task = "buffer-ctx.nvim/testblatt-bindings-checkliste",
+  sizes = { { rows = 40, cols = 120 } },
   steps = {
     {
       lua = [[dofile(vim.fn.getcwd() .. "/TESTS/sheets/_helpers.lua")
@@ -20,5 +21,10 @@ return {
     { expect = [[_G.eq(_G.text(), "api")]], note = "the Lua API inserts" },
     { lua = [[require("buffer_ctx").copy("env", { "BCTX_SHEET" })]] },
     { expect = [[_G.eq(_G.clip(), "api")]], note = "the Lua API copies" },
+    { keys = ":checkhealth buffer_ctx<CR>" },
+    { wait = [[#_G.report("format subsystem enabled") == 1]], note = "format is not misreported" },
+    { expect = [[#_G.report("mark subsystem enabled") == 1]], note = "mark neither" },
+    { expect = [[#_G.report("reveal subsystem enabled") == 1]], note = "reveal neither" },
+    { expect = [[_G.eq(#_G.report("ERROR"), 0)]], note = "no error line" },
   },
 }
