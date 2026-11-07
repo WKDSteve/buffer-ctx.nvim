@@ -1,6 +1,7 @@
 -- Live check: `:OpenInBrowser` on an unnamed buffer with the real open.nvim (task
--- buffer-ctx.nvim/testblatt-bindings-checkliste; section 8 of ALL/manual-test-checklists/buffer-ctx.md). open.nvim has no
--- ci-verified branch: a reported skip on the CI, it runs beside a sibling checkout. What could start a program records.
+-- buffer-ctx.nvim/testblatt-bindings-checkliste; section 8 of ALL/manual-test-checklists/buffer-ctx.md). Runs beside a
+-- sibling checkout of open.nvim; the CI checks one out at a pinned commit (it has no ci-verified branch). What could
+-- start a program records.
 return {
   id = "bctx.reveal-open",
   title = "buffer-ctx.nvim: :OpenInBrowser on an unnamed buffer with open.nvim: a warning, no program, no traceback",

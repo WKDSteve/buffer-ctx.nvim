@@ -1,6 +1,6 @@
 -- Live check: `:Insert mdlink` with the real markdown.nvim (task buffer-ctx.nvim/testblatt-bindings-checkliste; section
--- 3a of ALL/manual-test-checklists/buffer-ctx.md). markdown.nvim has no ci-verified branch: a reported skip on the
--- CI, it runs beside a sibling checkout.
+-- 3a of ALL/manual-test-checklists/buffer-ctx.md). Runs beside a sibling checkout of markdown.nvim; the CI checks one
+-- out at a pinned commit (it has no ci-verified branch).
 return {
   id = "bctx.mdlink-markdown",
   title = "buffer-ctx.nvim: :Insert mdlink with markdown.nvim gives the text of the fallback",

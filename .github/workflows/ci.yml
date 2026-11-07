@@ -103,6 +103,19 @@ jobs:
           repository: nvim-lua/plenary.nvim
           path: plenary.nvim
           ref: 74b06c6c75e4eeb3108ec01852001636d85a932b
+      # markdown.nvim and open.nvim: only the test sheets bctx-mdlink-markdown and bctx-reveal-open put them on their
+      # runtimepath (sibling checkout, TESTS/sheets/_helpers.lua add_deps); a spec never sees them. Neither repo has a
+      # ci-verified branch, so each is pinned to a main commit whose own CI was green; bump deliberately.
+      - uses: actions/checkout@v5
+        with:
+          repository: WKDSteve/markdown.nvim
+          path: markdown.nvim
+          ref: 88864df894a44e5f82a94cdcda27aad91e10b15f
+      - uses: actions/checkout@v5
+        with:
+          repository: WKDSteve/open.nvim
+          path: open.nvim
+          ref: 1d50a98167a3895e55529212025beef8314f6585
       - name: Run the specs
         working-directory: buffer-ctx.nvim
         run: |
