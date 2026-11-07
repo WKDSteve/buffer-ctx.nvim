@@ -107,6 +107,15 @@ return function(H)
   local _, snip_err = snippet.get("does-not-exist")
   H.ok(snip_err ~= nil, "unknown snippet returns an error")
 
+  -- A display key may hold spaces, and the command line arrives split on them.
+  vim.fn.setreg('"', "")
+  require("buffer_ctx.commands")._dispatch("snippet", { "For", "Loop" }, "clip")
+  H.eq(
+    vim.fn.getreg('"'),
+    table.concat(body, "\n"),
+    ":Copy snippet resolves a display key with spaces"
+  )
+
   snippet.set_sources({})
   local _, no_src = snippet.get("forl")
   H.ok(no_src ~= nil, "snippet without sources returns an error instead of crashing")

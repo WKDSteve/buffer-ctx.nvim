@@ -227,8 +227,9 @@ local DISPATCH = {
   end,
 
   snippet = function(fargs, sink)
-    local name = fargs[1]
-    if not name or name == "" then
+    -- A display key may hold spaces ("For Loop"), and the arguments arrive split on them.
+    local name = table.concat(fargs, " ")
+    if name == "" then
       local keys = snippet.list_keys()
       if #keys == 0 then
         notify.error("no snippets configured (snippets = { paths = {…} })")
