@@ -91,6 +91,18 @@ jobs:
           repository: "WKDSteve/testing.nvim"
           path: testing.nvim
           ref: ci-verified
+      # telescope.nvim and plenary.nvim: only the test sheet bctx-telescope puts them on its runtimepath; a spec never
+      # sees them. No ci-verified branch applies, so each is pinned (the SHAs of emojis.nvim); bump deliberately.
+      - uses: actions/checkout@v5
+        with:
+          repository: nvim-telescope/telescope.nvim
+          path: telescope.nvim
+          ref: 40aedd8a68c78a656a10a8d62d80c54af59420fb
+      - uses: actions/checkout@v5
+        with:
+          repository: nvim-lua/plenary.nvim
+          path: plenary.nvim
+          ref: 74b06c6c75e4eeb3108ec01852001636d85a932b
       - name: Run the specs
         working-directory: buffer-ctx.nvim
         run: |
