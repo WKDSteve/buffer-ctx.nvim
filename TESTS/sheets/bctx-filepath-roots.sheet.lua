@@ -2,6 +2,7 @@
 -- buffer-ctx.nvim/testblatt-bindings-checkliste; section 1a of ALL/manual-test-checklists/buffer-ctx.md).
 return {
   id = "bctx.filepath-roots",
+  feature = "bctx.filepath",
   title = "buffer-ctx.nvim: :Copy filepath repos and env, inside and outside the roots, with $REPOS_DIR unset",
   task = "buffer-ctx.nvim/manual-checklist-run",
   steps = {

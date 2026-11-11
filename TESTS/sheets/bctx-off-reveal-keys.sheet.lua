@@ -2,6 +2,7 @@
 -- ALL/manual-test-checklists/buffer-ctx.md).
 return {
   id = "bctx.off-reveal-keys",
+  feature = "bctx.switches",
   title = "buffer-ctx.nvim: reveal = { keymaps = false } unbinds only the two keys, both commands stay",
   task = "buffer-ctx.nvim/manual-checklist-run",
   steps = {

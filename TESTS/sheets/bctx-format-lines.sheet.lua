@@ -2,6 +2,7 @@
 -- ALL/manual-test-checklists/buffer-ctx.md and the :Format lines of the bindings checklist).
 return {
   id = "bctx.format-lines",
+  feature = "bctx.format-lines",
   title = "buffer-ctx.nvim: :Format trim, filter, squeeze, sort, unique, case, indent, cite, clear",
   task = "buffer-ctx.nvim/manual-checklist-run",
   steps = {

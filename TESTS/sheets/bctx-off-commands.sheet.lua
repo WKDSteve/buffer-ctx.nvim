@@ -2,6 +2,7 @@
 -- ALL/manual-test-checklists/buffer-ctx.md).
 return {
   id = "bctx.off-commands",
+  feature = "bctx.switches",
   title = "buffer-ctx.nvim: commands = false removes :Insert and :Copy, the Lua API works, :Format and :Mark stay",
   task = "buffer-ctx.nvim/manual-checklist-run",
   sizes = { { rows = 40, cols = 120 } },

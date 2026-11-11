@@ -2,6 +2,7 @@
 -- ALL/manual-test-checklists/buffer-ctx.md).
 return {
   id = "bctx.mark-categories",
+  feature = "bctx.mark-categories",
   title = "buffer-ctx.nvim: named mark categories: yank and clear filter, a toggle replaces another category",
   task = "buffer-ctx.nvim/manual-checklist-run",
   steps = {

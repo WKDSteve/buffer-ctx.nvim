@@ -2,6 +2,7 @@
 -- ALL/manual-test-checklists/buffer-ctx.md and the :Format lines of the bindings checklist).
 return {
   id = "bctx.format-layout",
+  feature = "bctx.format-layout",
   title = "buffer-ctx.nvim: :Format table, column (and its refusal), textwidth, enum on real selections",
   task = "buffer-ctx.nvim/manual-checklist-run",
   steps = {

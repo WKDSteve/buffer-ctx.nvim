@@ -2,6 +2,7 @@
 -- buffer-ctx.nvim/testblatt-bindings-checkliste; section 3 of ALL/manual-test-checklists/buffer-ctx.md).
 return {
   id = "bctx.annotation-snippet",
+  feature = "bctx.annotations",
   title = "buffer-ctx.nvim: annotations, prompted and given, multi-word arguments; snippets by key, prefix and picker",
   task = "buffer-ctx.nvim/manual-checklist-run",
   sizes = { { rows = 30, cols = 100 } },

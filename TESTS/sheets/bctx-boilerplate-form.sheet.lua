@@ -2,6 +2,7 @@
 -- buffer-ctx.nvim/testblatt-bindings-checkliste; section 2 of ALL/manual-test-checklists/buffer-ctx.md).
 return {
   id = "bctx.boilerplate-form",
+  feature = "bctx.boilerplate",
   title = "buffer-ctx.nvim: guard-clause asks in a form, the answers are in the clause, a dismissed form inserts nothing",
   task = "buffer-ctx.nvim/manual-checklist-run",
   steps = {

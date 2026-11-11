@@ -2,6 +2,7 @@
 -- ALL/manual-test-checklists/buffer-ctx.md).
 return {
   id = "bctx.off-format",
+  feature = "bctx.switches",
   title = "buffer-ctx.nvim: format = false removes :Format, the report says disabled, the others stay enabled",
   task = "buffer-ctx.nvim/manual-checklist-run",
   sizes = { { rows = 40, cols = 120 } },

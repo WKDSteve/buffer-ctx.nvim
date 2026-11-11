@@ -3,6 +3,7 @@
 -- and a browser are GUIs: lib.nvim's reveal_in_fm, vim.ui.open and open.nvim are stubs that record their arguments.
 return {
   id = "bctx.reveal",
+  feature = "bctx.reveal",
   title = "buffer-ctx.nvim: :RevealInFm, :OpenInBrowser, <leader>of, <leader>ob: what they hand over, unnamed buffers",
   task = "buffer-ctx.nvim/manual-checklist-run",
   steps = {

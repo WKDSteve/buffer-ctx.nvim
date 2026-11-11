@@ -3,6 +3,7 @@
 -- on a real clipboard is for a person: the stub stands in for images.nvim, which reads the OS clipboard.
 return {
   id = "bctx.imagepaste",
+  feature = "bctx.imagepaste",
   title = "buffer-ctx.nvim: :Insert imagepaste hands name and path mode over, no :Copy, an error without images.nvim",
   task = "buffer-ctx.nvim/manual-checklist-run",
   steps = {

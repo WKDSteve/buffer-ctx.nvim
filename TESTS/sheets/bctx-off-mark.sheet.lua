@@ -2,6 +2,7 @@
 -- ALL/manual-test-checklists/buffer-ctx.md).
 return {
   id = "bctx.off-mark",
+  feature = "bctx.switches",
   title = "buffer-ctx.nvim: mark = false removes :Mark, its keys and its autocmd group, the report says disabled",
   task = "buffer-ctx.nvim/manual-checklist-run",
   sizes = { { rows = 40, cols = 120 } },

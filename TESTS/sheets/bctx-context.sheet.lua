@@ -2,6 +2,7 @@
 -- buffer-ctx.nvim/testblatt-bindings-checkliste; section 3 of ALL/manual-test-checklists/buffer-ctx.md).
 return {
   id = "bctx.context",
+  feature = "bctx.context",
   title = "buffer-ctx.nvim: location with a range, module, timestamp, date, uuid, env, git, linecount, bufnr",
   task = "buffer-ctx.nvim/manual-checklist-run",
   steps = {

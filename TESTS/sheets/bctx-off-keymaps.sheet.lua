@@ -2,6 +2,7 @@
 -- section 7 of ALL/manual-test-checklists/buffer-ctx.md).
 return {
   id = "bctx.off-keymaps",
+  feature = "bctx.switches",
   title = "buffer-ctx.nvim: keymaps = false unbinds every key, commands stay, an explicit mark.keymaps wins",
   task = "buffer-ctx.nvim/manual-checklist-run",
   steps = {

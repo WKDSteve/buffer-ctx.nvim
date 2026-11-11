@@ -2,6 +2,7 @@
 -- buffer-ctx.nvim/testblatt-bindings-checkliste; section 3a of ALL/manual-test-checklists/buffer-ctx.md).
 return {
   id = "bctx.mdlink",
+  feature = "bctx.mdlink",
   title = "buffer-ctx.nvim: :Insert mdlink, the literal fallback, the cursor in the link, the path modes",
   task = "buffer-ctx.nvim/manual-checklist-run",
   steps = {

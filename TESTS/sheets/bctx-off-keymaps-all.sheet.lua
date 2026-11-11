@@ -2,6 +2,7 @@
 -- section 7 of ALL/manual-test-checklists/buffer-ctx.md).
 return {
   id = "bctx.off-keymaps-all",
+  feature = "bctx.switches",
   title = "buffer-ctx.nvim: keymaps = false alone leaves <leader>of and <leader>ob unbound too",
   task = "buffer-ctx.nvim/manual-checklist-run",
   sizes = { { rows = 40, cols = 120 } },

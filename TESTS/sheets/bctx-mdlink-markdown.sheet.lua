@@ -3,6 +3,7 @@
 -- out at a pinned commit (it has no ci-verified branch).
 return {
   id = "bctx.mdlink-markdown",
+  feature = "bctx.mdlink",
   title = "buffer-ctx.nvim: :Insert mdlink with markdown.nvim gives the text of the fallback",
   task = "buffer-ctx.nvim/manual-checklist-run",
   requires = {

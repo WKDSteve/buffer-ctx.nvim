@@ -2,6 +2,7 @@
 -- ALL/manual-test-checklists/buffer-ctx.md and the buffer-ctx lines of the bindings checklist).
 return {
   id = "bctx.filepath",
+  feature = "bctx.filepath",
   title = "buffer-ctx.nvim: :Copy filepath in all its forms, the compat commands and the <leader>cn keys",
   task = "buffer-ctx.nvim/manual-checklist-run",
   steps = {

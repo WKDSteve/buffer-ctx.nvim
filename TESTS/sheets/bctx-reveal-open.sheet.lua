@@ -4,6 +4,7 @@
 -- start a program records.
 return {
   id = "bctx.reveal-open",
+  feature = "bctx.reveal",
   title = "buffer-ctx.nvim: :OpenInBrowser on an unnamed buffer with open.nvim: a warning, no program, no traceback",
   task = "buffer-ctx.nvim/manual-checklist-run",
   requires = {

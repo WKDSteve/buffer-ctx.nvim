@@ -3,6 +3,7 @@
 -- ALL/manual-test-checklists/buffer-ctx.md). ui.nvim is not on this runtimepath; the kit.select branch is a spec.
 return {
   id = "bctx.boilerplate",
+  feature = "bctx.boilerplate",
   title = "buffer-ctx.nvim: the boilerplate picker, a named template, HTML and glue templates, :Copy boilerplate",
   task = "buffer-ctx.nvim/manual-checklist-run",
   sizes = { { rows = 40, cols = 120 } },

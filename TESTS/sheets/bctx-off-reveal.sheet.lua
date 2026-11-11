@@ -2,6 +2,7 @@
 -- ALL/manual-test-checklists/buffer-ctx.md).
 return {
   id = "bctx.off-reveal",
+  feature = "bctx.switches",
   title = "buffer-ctx.nvim: reveal = false removes both commands and keys, the report says disabled",
   task = "buffer-ctx.nvim/manual-checklist-run",
   sizes = { { rows = 40, cols = 120 } },

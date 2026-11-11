@@ -2,6 +2,7 @@
 -- of ALL/manual-test-checklists/buffer-ctx.md and the mark lines of the bindings checklist).
 return {
   id = "bctx.mark",
+  feature = "bctx.mark",
   title = "buffer-ctx.nvim: <S-m> with a count, a range marks the whole range, <C-p> yanks in order, :Mark clear",
   task = "buffer-ctx.nvim/manual-checklist-run",
   steps = {
