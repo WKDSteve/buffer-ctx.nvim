@@ -68,3 +68,17 @@ each page answers.
 ## License
 
 MIT — see [LICENSE](LICENSE).
+
+<!-- connections:begin (written by the app-icons tool of the workshop; change integrations.json there, not this block) -->
+## Connections
+
+![buffer-ctx.nvim: what it uses and what uses it](assets/graphs/buffer-ctx.nvim.png)
+
+**Uses**
+
+- [images.nvim](https://github.com/WKDSteve/images.nvim): `:Insert imagepaste` of buffer-ctx.nvim dispatches to images.nvim; without it the command fails. ([picture](assets/graphs/pair/buffer-ctx.nvim--images.nvim.png))
+- [markdown.nvim](https://github.com/WKDSteve/markdown.nvim): With markdown.nvim installed, `:Insert mdlink` and `:Copy mdlink` of buffer-ctx.nvim use its link builder (`markdown.commands.markdown_links`). ([picture](assets/graphs/pair/buffer-ctx.nvim--markdown.nvim.png))
+- [open.nvim](https://github.com/WKDSteve/open.nvim): `:OpenInBrowser` of buffer-ctx.nvim delegates to the browser handler of open.nvim when it is installed. ([picture](assets/graphs/pair/buffer-ctx.nvim--open.nvim.png))
+- [ui.nvim](https://github.com/WKDSteve/ui.nvim): The picker prompts of buffer-ctx.nvim use the kit of ui.nvim when it is installed, and `vim.ui.select` otherwise. ([picture](assets/graphs/pair/buffer-ctx.nvim--ui.nvim.png))
+- [lib.nvim](https://github.com/WKDSteve/lib.nvim): the shared base of the plugins.
+<!-- connections:end -->
