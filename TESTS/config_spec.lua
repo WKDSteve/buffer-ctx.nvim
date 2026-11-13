@@ -2,10 +2,10 @@
 -- buffer_ctx.health (:checkhealth report, both the enabled and the
 -- subsystem-disabled early-return paths).
 --
--- Runs last (see run.lua): it calls buffer_ctx.config.setup() directly,
--- bypassing buffer_ctx's own idempotent setup() guard, so it must not run
--- before a spec that depends on the default config being active. It restores
--- the defaults at the end regardless.
+-- It calls buffer_ctx.config.setup() directly, bypassing buffer_ctx's own
+-- idempotent setup() guard. testing.nvim runs every spec file in its own nvim
+-- (`isolated = "file"` in .testing.lua), so no other spec sees that config; it
+-- restores the defaults at the end regardless.
 
 return function(H)
   local config = require("buffer_ctx.config")
