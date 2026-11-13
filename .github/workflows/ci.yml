@@ -177,15 +177,14 @@ jobs:
           neovim: true
           version: stable
 
+      # A script, not `-c "lua ..." -c checkhealth`: nvim exits 0 after a failing -c, so that line stayed
+      # green when setup() raised. scripts/checkhealth.lua exits 1 when setup() raises or the report holds an ERROR
+      # (lib.nvim: the sibling checkout above).
       - name: setup() + :checkhealth buffer_ctx
         working-directory: buffer-ctx.nvim
         run: |
           exec > >(tee -a "$RUNNER_TEMP/test-output.log") 2>&1
-          nvim -n -i NONE --headless -u NONE \
-            -c "set rtp+=.,../lib.nvim" \
-            -c "lua require('buffer_ctx').setup({})" \
-            -c "checkhealth buffer_ctx" \
-            -c "qa!"
+          nvim -n -i NONE -u NONE -l scripts/checkhealth.lua
       - uses: actions/upload-artifact@v7
         if: failure()
         with:

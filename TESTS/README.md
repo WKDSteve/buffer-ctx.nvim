@@ -23,6 +23,11 @@ and `lib.nvim` are looked up in `$TESTING_NVIM_DIR` / `$LIB_NVIM_DIR`,
 `.deps/<name>`, `../<name>` and `stdpath('data')/lazy/<name>`; a missing one is
 a loud error naming all four places.
 
+CI's "checkhealth loads" job runs a plain install (this plugin and lib.nvim, no
+runner, no user config) through `nvim -n -i NONE -u NONE -l scripts/checkhealth.lua`:
+exit 1 when `setup({})` raises or `:checkhealth buffer_ctx` reports an ERROR.
+lib.nvim comes from `$LIB_NVIM_DIR`, else the sibling checkout `../lib.nvim`.
+
 ## Layout
 
 | File                    | Covers                                                                                                    |
