@@ -52,6 +52,23 @@ return function(H)
   H.eq(fmt2, "iso", "timestamp parse_args default fmt")
   H.eq(utc2, false, "timestamp parse_args default utc")
   H.match(timestamp_op.format_timestamp("12h"), "^%d%d:%d%d:%d%d [AP]M$", "timestamp 12h shape")
+  -- the plugin's own spellings over lib.lua.time.format's patterns
+  H.match(
+    timestamp_op.format_timestamp("short"),
+    "^%d%d%.%d%d%.%d%d%d%d$",
+    "timestamp short is dd.mm.yyyy"
+  )
+  H.match(
+    timestamp_op.format_timestamp("log"),
+    "^%d%d%d%d%-%d%d%-%d%d %d%d:%d%d:%d%d$",
+    "timestamp log has no brackets"
+  )
+  H.match(timestamp_op.format_timestamp("long"), "^%a+, %a+ %d+, %d%d%d%d$", "timestamp long shape")
+  H.match(
+    timestamp_op.format_timestamp("bogus"),
+    "^%d%d%d%d%-%d%d%-%d%dT%d%d:%d%d:%d%d$",
+    "timestamp unknown falls back to iso"
+  )
   H.match(timestamp_op.format_timestamp("weekday"), "^%a+$", "timestamp weekday shape")
   H.match(
     timestamp_op.format_timestamp("rfc2822"),
