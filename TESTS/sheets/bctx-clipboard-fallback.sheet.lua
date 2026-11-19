@@ -1,6 +1,7 @@
 -- Live check: without a working clipboard provider (a "+" write that does not come back, as over SSH or in a bare
 -- container) `:Copy filepath` still reaches the system clipboard: lib.nvim's `cross.copy_to_clipboard` hands the text
--- to the OS tool (`powershell Set-Clipboard` on Windows, `pbcopy` on macOS, `wl-copy`/`xclip`/`xsel` on Linux). The
+-- to the OS tool (`powershell Set-Clipboard` on Windows, `pbcopy` on macOS, `wl-copy`/`xclip`/`xsel` on Linux,
+-- `clip.exe` in WSL). The
 -- tools are recording stand-ins (`fakes`), so the real clipboard of the machine is never touched.
 -- On Windows the `.cmd` stand-in splits an argument at a `|` and runs the rest as a command (testing.nvim task
 -- fake-programs-der-windows-stand-in-fuehrt-die-teile-eines-ar), so a `lua` step escapes the `|` of the PowerShell
@@ -9,7 +10,7 @@ return {
   id = "bctx.clipboard-fallback",
   feature = "bctx.clipboard-fallback",
   title = "buffer-ctx.nvim: :Copy filepath without a clipboard provider goes through the OS clipboard tool",
-  fakes = { "powershell", "pbcopy", "wl-copy", "xclip", "xsel" },
+  fakes = { "powershell", "pbcopy", "wl-copy", "xclip", "xsel", "clip.exe" },
   steps = {
     {
       lua = [[dofile(vim.fn.getcwd() .. "/TESTS/sheets/_helpers.lua")
@@ -35,7 +36,7 @@ return {
       _G.calls = function()
         local fp = require("testing.fake_programs")
         local all = {}
-        for _, p in ipairs({ "powershell", "pbcopy", "wl-copy", "xclip", "xsel" }) do
+        for _, p in ipairs({ "powershell", "pbcopy", "wl-copy", "xclip", "xsel", "clip.exe" }) do
           for _, c in ipairs(fp.read(vim.env.TESTING_FAKES, p)) do
             all[#all + 1] = c
           end
