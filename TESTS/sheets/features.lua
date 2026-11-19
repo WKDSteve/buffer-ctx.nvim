@@ -16,6 +16,18 @@ return {
     docs = "docs/FEATURES/CONTEXT.md",
   },
   {
+    id = "bctx.permalink",
+    title = ":Copy location remote copies the forge permalink of the line at HEAD, warning when the file differs",
+    surface = { "command:Copy location remote", "command:Insert location remote" },
+    docs = "docs/FEATURES/CONTEXT.md",
+  },
+  {
+    id = "bctx.clipboard-fallback",
+    title = "Without a working clipboard provider :Copy hands the text to the OS clipboard tool",
+    surface = { "command:Copy" },
+    docs = "docs/FEATURES/CONTEXT.md",
+  },
+  {
     id = "bctx.annotations",
     title = "LuaCATS annotation lines are inserted, prompted or given, and a function gets its annotations by dialog",
     surface = { "command:Insert annotation" },
