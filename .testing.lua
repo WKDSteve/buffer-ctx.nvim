@@ -67,4 +67,47 @@ return {
       },
     },
   },
+  ci = {
+    -- The GitHub workflow, generated: `testing init . --workflow=public --force` writes .github/workflows/ci.yml from
+    -- this (testing.nvim docs/WORKFLOW-CI.md); the step workflow-in-sync keeps the two together.
+    workflow = {
+      name = "buffer-ctx.nvim",
+      layout = "hosted",
+      -- the steps that depend on the platform: the windows and macOS legs run only these
+      platform = { "suite", "conformance" },
+      -- `testing ci land`: a check branch ci/** runs the hosted legs, main moves only once it is green there (CI-05)
+      land = true,
+      -- more checkouts below .deps/, not on the runtimepath of the specs: only test sheets put them there
+      checkouts = {
+        {
+          repo = "nvim-telescope/telescope.nvim",
+          ref = "40aedd8a68c78a656a10a8d62d80c54af59420fb",
+          why = "only the test sheet bctx-telescope puts it on its runtimepath (the SHA of emojis.nvim; bump deliberately)",
+        },
+        {
+          repo = "nvim-lua/plenary.nvim",
+          ref = "74b06c6c75e4eeb3108ec01852001636d85a932b",
+          why = "telescope.nvim needs it for the test sheet bctx-telescope",
+        },
+        {
+          repo = "WKDSteve/markdown.nvim",
+          ref = "88864df894a44e5f82a94cdcda27aad91e10b15f",
+          why = "only the test sheet bctx-mdlink-markdown loads it; markdown.nvim publishes no ci-verified yet",
+        },
+        {
+          repo = "WKDSteve/open.nvim",
+          ref = "ci-verified",
+          why = "only the test sheet bctx-reveal-open loads it",
+        },
+      },
+    },
+    steps = {
+      ["workflow-in-sync"] = { preset = "workflow-in-sync" },
+      -- the job `health` of the hand-written workflow: setup() and :checkhealth buffer_ctx load cleanly
+      health = {
+        run = { "nvim", "-n", "-i", "NONE", "-u", "NONE", "-l", "scripts/checkhealth.lua" },
+        env = { LIB_NVIM_DIR = "${deps.lib.nvim}" },
+      },
+    },
+  },
 }
