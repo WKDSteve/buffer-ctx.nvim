@@ -109,6 +109,68 @@ local function cfg(key)
   return type(section) == "table" and section or {}
 end
 
+-- The requests still waiting for git, one per command: a newer one stops the
+-- older, whose answer would come late and land wherever the cursor is then.
+---@type table<string, { handle?: { stop: fun() } }>
+local inflight = {}
+
+---@internal
+--- Run a command whose result comes later (git in the background) and route
+--- the answer to the sink once it is there. `start(on_done)` starts the
+--- request and returns its handle; `on_done(result, err)` is called on the
+--- main loop. Only the newest request of a `key` answers. An insert goes into
+--- the buffer that was current when asked, or not at all.
+---@param key string  names the command, also in messages
+---@param sink BufferCtx.Sink
+---@param start fun(on_done: fun(result: string|nil, err: string)): { stop: fun() }
+local function later(key, sink, start)
+  local prev = inflight[key]
+  inflight[key] = nil
+  if prev and prev.handle then
+    pcall(prev.handle.stop)
+  end
+  local token = {}
+  inflight[key] = token
+  local buf = vim.api.nvim_get_current_buf()
+  local ok, handle = pcall(start, function(result, err)
+    if inflight[key] ~= token then
+      return
+    end
+    inflight[key] = nil
+    -- Whatever throws from here on would vanish in the callback: say it.
+    local ok_sink, sink_err = pcall(function()
+      if not result then
+        notify.error(err)
+      elseif sink ~= "clip" and vim.api.nvim_get_current_buf() ~= buf then
+        notify.warn(key .. ": the buffer changed before git answered, nothing inserted")
+      else
+        sink_text(result, sink)
+      end
+    end)
+    if not ok_sink then
+      notify.error(key .. ": " .. tostring(sink_err))
+    end
+  end)
+  if not ok then
+    if inflight[key] == token then
+      inflight[key] = nil
+    end
+    notify.error(key .. ": " .. tostring(handle))
+  elseif inflight[key] == token then
+    token.handle = handle
+  end
+end
+
+---How many commands still wait for git (tests and sheets wait for 0).
+---@return integer
+function M.pending()
+  local n = 0
+  for _ in pairs(inflight) do
+    n = n + 1
+  end
+  return n
+end
+
 -- Dispatch table: subcmd → function(fargs, sink, ctx)
 -- ctx carries the command range ({ line1, line2 }) when one was given.
 local DISPATCH = {
@@ -200,12 +262,11 @@ local DISPATCH = {
 
   git = function(fargs, sink)
     local mode = git_op.parse_args(fargs)
-    local result, err = git_op.get(mode)
-    if not result then
-      notify.error(err or "git failed")
-      return
-    end
-    sink_text(result, sink)
+    later("git", sink, function(on_done)
+      return git_op.get_async(mode, function(result, err)
+        on_done(result, err or "git failed")
+      end)
+    end)
   end,
 
   linecount = function(_, sink)
@@ -293,7 +354,6 @@ local DISPATCH = {
     end
     local result, err
     if want_remote then
-      local warn
       local line1, line2 = ctx and ctx.line1, ctx and ctx.line2
       if not want_range then
         -- Like the plain path:line form: without `range`, a command range or a
@@ -301,10 +361,15 @@ local DISPATCH = {
         line1 = vim.api.nvim_win_get_cursor(0)[1]
         line2 = line1
       end
-      result, err, warn = location.get_remote(line1, line2)
-      if result and warn then
-        notify.warn(warn)
-      end
+      later("location remote", sink, function(on_done)
+        return location.get_remote_async(line1, line2, function(url, e, warn)
+          if url and warn then
+            notify.warn(warn)
+          end
+          on_done(url, e or "location failed")
+        end)
+      end)
+      return
     elseif want_range then
       result, err = location.get_range(mode, ctx and ctx.line1, ctx and ctx.line2)
     else

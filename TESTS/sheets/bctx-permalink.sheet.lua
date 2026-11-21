@@ -1,6 +1,7 @@
 -- Live check: `:Copy location remote` builds the forge permalink of the line from the real git of a fresh repository
--- (origin on GitHub, one commit): the repository, its origin, the tracked path, HEAD and whether the file differs
--- from HEAD are five git calls through lib.nvim.git. No network: the URL is only built, never opened.
+-- (origin on GitHub, one commit): the origin comes from .git/config, the tracked path, HEAD and whether the file
+-- differs from HEAD from two git calls that run together in the background (`ls-files`, `status`), so the steps wait
+-- for the clipboard. No network: the URL is only built, never opened.
 return {
   id = "bctx.permalink",
   feature = "bctx.permalink",
@@ -30,15 +31,18 @@ return {
     },
     { keys = ":Copy location remote<CR>" },
     {
-      expect = [[_G.eq(_G.clip(), "https://github.com/owner/repo/blob/" .. _G.sha .. "/lua/a.lua#L2")]],
-      note = "the permalink of the line at HEAD",
+      wait = [[_G.clip() == "https://github.com/owner/repo/blob/" .. _G.sha .. "/lua/a.lua#L2"]],
+      note = "the permalink of the line at HEAD, once git answered in the background",
     },
     { expect = [[not _G.noted("differs from HEAD")]], note = "a clean file: no warning" },
 
     { lua = [[_G.forget()]] },
     { keys = "Goadded<Esc>:write<CR>", note = "a saved change: the file differs from HEAD" },
     { keys = "gg:Copy location remote<CR>" },
-    { expect = [[_G.has(_G.clip(), "/lua/a.lua#L1")]], note = "still the permalink" },
+    {
+      wait = [[(_G.clip() or ""):find("/lua/a.lua#L1", 1, true) ~= nil]],
+      note = "still the permalink",
+    },
     {
       expect = [[_G.noted("file differs from HEAD")]],
       note = "with the warning that the lines may have moved",

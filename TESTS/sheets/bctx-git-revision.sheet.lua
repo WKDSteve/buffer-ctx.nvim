@@ -1,6 +1,6 @@
 -- Live check: `:Insert git` hash, short, tag and branch on a detached HEAD, with the real git on a fresh repository
--- with one commit and a tag (the branch on a branch is in bctx-context.sheet.lua). Each command is one or two git
--- calls through lib.nvim.git, so `testing perf` sees every one of them.
+-- with one commit and a tag (the branch on a branch is in bctx-context.sheet.lua). hash and branch are read from the
+-- .git files; short and tag are one git call in the background each, so the steps wait for the answer.
 return {
   id = "bctx.git-revision",
   feature = "bctx.context",
@@ -33,22 +33,22 @@ return {
     },
     { lua = [[_G.fresh("")]] },
     { keys = ":Insert git hash<CR>" },
-    { expect = [[_G.eq(_G.line(), _G.sha)]], note = ":Insert git hash: the full commit" },
+    { wait = [[_G.line() == _G.sha]], note = ":Insert git hash: the full commit" },
     { lua = [[_G.fresh("")]] },
     { keys = ":Insert git<CR>", note = "no mode: short" },
-    { expect = [[_G.eq(_G.line(), _G.short)]], note = "the short hash" },
+    { wait = [[_G.line() == _G.short]], note = "the short hash" },
     { lua = [[_G.fresh("")]] },
     { keys = ":Insert git tag<CR>" },
-    { expect = [[_G.eq(_G.line(), "v1.2.3")]], note = "the nearest tag" },
+    { wait = [[_G.line() == "v1.2.3"]], note = "the nearest tag" },
     { keys = ":Copy git short<CR>" },
-    { expect = [[_G.eq(_G.clip(), _G.short)]], note = ":Copy git short" },
+    { wait = [[_G.clip() == _G.short]], note = ":Copy git short" },
 
     {
       lua = [[_G.git("checkout", "-q", "--detach"); _G.fresh(""); _G.forget()]],
       note = "a detached HEAD",
     },
     { keys = ":Insert git branch<CR>" },
-    { expect = [[_G.noted("detached HEAD")]], note = "it says why there is no branch" },
+    { wait = [[_G.noted("detached HEAD")]], note = "it says why there is no branch" },
     { expect = [[_G.eq(_G.text(), "")]], note = "nothing is inserted" },
   },
 }

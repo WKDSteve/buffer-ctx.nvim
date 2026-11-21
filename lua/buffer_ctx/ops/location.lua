@@ -107,15 +107,20 @@ function M.get_range(mode, line1, line2)
   return string.format("%s:L%d-L%d", filepath, line1, line2), nil
 end
 
----Get a permalink to the cursor line or line range on the git forge.
----
---- Links the current commit (not the branch), so the link keeps pointing at
---- the same lines. Works for the hosts `lib.nvim.git.remote` knows (GitHub,
---- GitLab, Codeberg).
----@param line1? integer  range start (1-based), nil = visual marks / cursor
----@param line2? integer  range end (1-based)
----@return string|nil url, string|nil err, string|nil warn  warn: the link was built but may be off
-function M.get_remote(line1, line2)
+---@class BufferCtx.RemoteRequest
+---@field abs string       the buffer's file
+---@field dir string       where git runs
+---@field line1 integer
+---@field line2 integer
+---@field modified boolean the buffer had unsaved changes when asked
+
+---@internal
+---Everything the permalink needs from the editor, read when it is asked for
+---(the answer may come later, after the cursor or buffer changed).
+---@param line1? integer
+---@param line2? integer
+---@return BufferCtx.RemoteRequest|nil req, string|nil err
+local function remote_request(line1, line2)
   local name = api.nvim_buf_get_name(0)
   if not name or name == "" then
     return nil, "unnamed buffer"
@@ -123,55 +128,166 @@ function M.get_remote(line1, line2)
   if fn.executable("git") == 0 then
     return nil, "git executable not found in PATH"
   end
-
-  local lib_git = require("lib.nvim.git")
-  local remote_mod = require("lib.nvim.git.remote")
   local abs = fn.fnamemodify(name, ":p")
   local dir = fn.fnamemodify(abs, ":h")
   if fn.isdirectory(dir) == 0 then
     dir = fn.getcwd()
   end
-  local opts = { dir = dir }
-
-  if not lib_git.in_git_repo(opts) then
-    return nil, "not inside a git repository"
-  end
-  local remote_url = lib_git.remote_url("origin", opts)
-  if not remote_url then
-    return nil, "git: no 'origin' remote"
-  end
-  local remote = remote_mod.parse_remote(remote_url)
-  if not remote then
-    return nil, "cannot parse the origin remote url: " .. remote_url
-  end
-  local kind = remote_mod.host_kind(remote.host)
-  if not kind then
-    return nil,
-      string.format(
-        "unknown git host '%s' (built in: github, gitlab, codeberg; see lib.nvim.git.remote.host_kind)",
-        remote.host
-      )
-  end
-  local rel = lib_git.relative_path(abs, opts)
-  if not rel or rel == "" then
-    return nil, "file is not tracked by git: no permalink possible"
-  end
-  local sha = lib_git.head_hash(opts)
-  if not sha then
-    return nil, "git: could not resolve HEAD (no commits yet?)"
-  end
-
   line1, line2 = resolve_lines(line1, line2)
-  local url = remote_mod.build(kind, remote, sha, rel, line1, line2)
+  return { abs = abs, dir = dir, line1 = line1, line2 = line2, modified = vim.bo.modified }, nil
+end
 
-  local warn
-  if vim.bo.modified then
-    warn = "buffer has unsaved changes: line numbers may differ from the commit"
-  elseif lib_git.run({ "diff", "--quiet", "HEAD", "--", abs }, opts).code == 1 then
-    -- Exit 1 is "differs"; any other failure (git error, timeout) says nothing about the file.
-    warn = "file differs from HEAD: line numbers may differ from the commit"
+---@internal
+---Whether `git status --porcelain=v2 -z` printed an entry (the file differs
+---from HEAD in the index or the work tree), and the HEAD commit it names.
+---@param out string
+---@return string|nil sha, boolean differs
+local function parse_status(out)
+  local sha, differs = nil, false
+  for field in out:gmatch("[^%z]+") do
+    local oid = field:match("^# branch%.oid (%x+)$")
+    if oid then
+      sha = oid
+    elseif field:sub(1, 1) ~= "#" then
+      differs = true
+    end
   end
-  return url, nil, warn
+  return sha, differs
+end
+
+---@internal
+---The permalink steps, against a blocking or an asynchronous git job.
+---
+--- At most two git starts, together: `ls-files --full-name` (tracked? the
+--- repo-relative path; fails outside a repository) and `status --porcelain=v2
+--- --branch` on the file (HEAD's commit, and whether the file differs from it).
+--- The origin URL comes from `.git/config`; only a config this reader cannot
+--- follow (includes, insteadOf) asks `git remote get-url` afterwards.
+---@param req BufferCtx.RemoteRequest
+---@param job BufferCtx.GitJob
+---@param done fun(url: string|nil, err: string|nil, warn: string|nil)
+local function remote_steps(req, job, done)
+  local git_files = require("buffer_ctx.util.git_files")
+  local remote_mod = require("lib.nvim.git.remote")
+  local info = git_files.find(req.dir)
+  local remote_url, unsure
+  if info then
+    remote_url, unsure = git_files.remote_url(info, "origin")
+  end
+
+  local function finish(res)
+    local ls, st = res.ls, res.st
+    if not (ls and ls.ok) and not (st and st.ok) then
+      return done(nil, "not inside a git repository")
+    end
+    if not remote_url then
+      return done(nil, "git: no 'origin' remote")
+    end
+    local remote = remote_mod.parse_remote(remote_url)
+    if not remote then
+      return done(nil, "cannot parse the origin remote url: " .. remote_url)
+    end
+    local kind = remote_mod.host_kind(remote.host)
+    if not kind then
+      return done(
+        nil,
+        string.format(
+          "unknown git host '%s' (built in: github, gitlab, codeberg; see lib.nvim.git.remote.host_kind)",
+          remote.host
+        )
+      )
+    end
+    local rel = ls and ls.ok and (ls.stdout or ""):match("^[^%z\r\n]+") or nil
+    if not rel or rel == "" then
+      return done(nil, "file is not tracked by git: no permalink possible")
+    end
+    local sha, differs = nil, false
+    if st and st.ok then
+      sha, differs = parse_status(st.stdout or "")
+    end
+    if not sha then
+      return done(nil, "git: could not resolve HEAD (no commits yet?)")
+    end
+
+    local url = remote_mod.build(kind, remote, sha, rel, req.line1, req.line2)
+    local warn
+    if req.modified then
+      warn = "buffer has unsaved changes: line numbers may differ from the commit"
+    elseif differs then
+      warn = "file differs from HEAD: line numbers may differ from the commit"
+    end
+    return done(url, nil, warn)
+  end
+
+  job.all({
+    { "ls", { "ls-files", "--full-name", "-z", "--", req.abs } },
+    {
+      "st",
+      { "status", "--porcelain=v2", "--branch", "-z", "--untracked-files=no", "--", req.abs },
+    },
+  }, function(res)
+    local in_repo = (res.ls and res.ls.ok) or (res.st and res.st.ok)
+    if in_repo and (not info or unsure) then
+      -- Only a config the file reader cannot follow costs a third start.
+      job.run({ "remote", "get-url", "--", "origin" }, function(r)
+        remote_url = r.ok and vim.trim(r.stdout or "") or nil
+        if remote_url == "" then
+          remote_url = nil
+        end
+        finish(res)
+      end)
+      return
+    end
+    finish(res)
+  end)
+end
+
+---Get a permalink to the cursor line or line range on the git forge.
+---
+--- Links the current commit (not the branch), so the link keeps pointing at
+--- the same lines. Works for the hosts `lib.nvim.git.remote` knows (GitHub,
+--- GitLab, Codeberg). Blocks while git runs (up to two starts); the command
+--- uses `get_remote_async`.
+---@param line1? integer  range start (1-based), nil = visual marks / cursor
+---@param line2? integer  range end (1-based)
+---@return string|nil url, string|nil err, string|nil warn  warn: the link was built but may be off
+function M.get_remote(line1, line2)
+  local req, err = remote_request(line1, line2)
+  if not req then
+    return nil, err
+  end
+  local url, warn
+  remote_steps(req, require("buffer_ctx.util.git_run").job(false, req.dir), function(u, e, w)
+    url, err, warn = u, e, w
+  end)
+  return url, err, warn
+end
+
+---`get_remote` without blocking: git runs in the background and `on_done`
+---answers on the main loop, exactly once unless the handle is stopped first.
+---What the link points at (file, lines, unsaved state) is read now.
+---@param line1? integer
+---@param line2? integer
+---@param on_done fun(url: string|nil, err: string|nil, warn: string|nil)
+---@return { stop: fun() } handle  stop(): kill git, never answer
+function M.get_remote_async(line1, line2, on_done)
+  local req, err = remote_request(line1, line2)
+  if not req then
+    local stopped = false
+    vim.schedule(function()
+      if not stopped then
+        on_done(nil, err)
+      end
+    end)
+    return {
+      stop = function()
+        stopped = true
+      end,
+    }
+  end
+  local job = require("buffer_ctx.util.git_run").job(true, req.dir)
+  remote_steps(req, job, on_done)
+  return { stop = job.stop }
 end
 
 ---Parse fargs for location subcommand

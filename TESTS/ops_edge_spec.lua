@@ -374,42 +374,82 @@ return function(H)
     vim.env.REPOS_DIR = saved_repos_dir
   end
 
-  -- location-remote-permalink: `lib.nvim.git` is stubbed, so no real remote is needed.
+  -- location-remote-permalink: `lib.nvim.git`'s runners and the `.git` file reader are stubbed, so no real
+  -- remote is needed. git answers by verb: `ls-files` (tracked path), `status` (HEAD, differs), `remote get-url`
+  -- (only when the config file reader is unsure).
   do
     local loc = require("buffer_ctx.ops.location")
     local lib_git = require("lib.nvim.git")
+    local git_files = require("buffer_ctx.util.git_files")
     local sha = string.rep("a", 40)
     local state
     local function reset()
       state = {
         repo = true,
         url = "git@github.com:me/proj.git",
+        unsure = false,
+        git_url = nil,
         rel = "lua/p/x.lua",
         sha = sha,
-        diff_code = 0,
+        dirty = false,
+        status_ok = true,
+        verbs = {},
       }
     end
-    local orig = {}
+    local function answer(args)
+      state.verbs[#state.verbs + 1] = args[1]
+      if not state.repo then
+        return { ok = false, code = 128, stdout = "", stderr = "fatal: not a git repository" }
+      end
+      if args[1] == "ls-files" then
+        return { ok = true, code = 0, stdout = state.rel and (state.rel .. "\0") or "" }
+      elseif args[1] == "status" then
+        if not state.status_ok then
+          return { ok = false, code = 128, stdout = "", stderr = "fatal: bad object HEAD" }
+        end
+        local out = "# branch.oid " .. (state.sha or "(initial)") .. "\0# branch.head main\0"
+        if state.dirty then
+          out = out .. "1 .M N... 100644 100644 100644 " .. sha .. " " .. sha .. " lua/p/x.lua\0"
+        end
+        return { ok = true, code = 0, stdout = out }
+      elseif args[1] == "remote" then
+        return {
+          ok = state.git_url ~= nil,
+          code = state.git_url and 0 or 2,
+          stdout = state.git_url or "",
+        }
+      end
+      error("unexpected git verb " .. tostring(args[1]))
+    end
+    local orig = { lib_git = {}, git_files = {} }
     local stubs = {
-      in_git_repo = function()
-        return state.repo
-      end,
-      remote_url = function()
-        return state.url
-      end,
-      relative_path = function()
-        return state.rel
-      end,
-      head_hash = function()
-        return state.sha
-      end,
-      run = function()
-        return { ok = state.diff_code == 0, code = state.diff_code }
-      end,
+      lib_git = {
+        run = function(args)
+          return answer(args)
+        end,
+        run_async = function(args, _, on_done)
+          local res = answer(args)
+          vim.schedule(function()
+            on_done(res)
+          end)
+          return { stop = function() end }
+        end,
+      },
+      git_files = {
+        find = function()
+          return state.repo and { gitdir = "g", commondir = "g", top = "t" } or nil
+        end,
+        remote_url = function()
+          return state.url, state.unsure
+        end,
+      },
     }
-    for k, v in pairs(stubs) do
-      orig[k] = lib_git[k]
-      lib_git[k] = v
+    local targets = { lib_git = lib_git, git_files = git_files }
+    for mod, fns in pairs(stubs) do
+      for k, v in pairs(fns) do
+        orig[mod][k] = targets[mod][k]
+        targets[mod][k] = v
+      end
     end
 
     H.scratch(cwd .. "/lua/p/x.lua")
@@ -434,13 +474,28 @@ return function(H)
     reset()
     local _, _, clean_warn = loc.get_remote(1, 1)
     H.eq(clean_warn, nil, "get_remote: a clean file raises no warning")
-    state.diff_code = 1
+    state.dirty = true
     local _, _, dirty_warn = loc.get_remote(1, 1)
     H.match(dirty_warn or "", "differs from HEAD", "get_remote: a changed file warns")
     H.ok(loc.get_remote(1, 1) ~= nil, "get_remote: a changed file still yields a link")
-    state.diff_code = 128
-    local _, _, failed_warn = loc.get_remote(1, 1)
-    H.eq(failed_warn, nil, "get_remote: a failing git diff is not reported as a changed file")
+
+    -- Two git starts, and none for the remote while the config file answers.
+    reset()
+    loc.get_remote(1, 1)
+    table.sort(state.verbs)
+    H.eq(
+      table.concat(state.verbs, ","),
+      "ls-files,status",
+      "get_remote: ls-files and status, nothing else"
+    )
+    reset()
+    state.unsure, state.url, state.git_url = true, nil, "https://github.com/c/d.git"
+    H.eq(
+      loc.get_remote(1, 1),
+      "https://github.com/c/d/blob/" .. sha .. "/lua/p/x.lua#L1",
+      "get_remote: a config the reader cannot follow asks git remote get-url"
+    )
+    H.eq(#state.verbs, 3, "get_remote: the remote fallback is the third start")
 
     -- Through the command: without `range`, a command range / stale visual marks
     -- must not turn the link into a span; with `range` they do.
@@ -458,9 +513,15 @@ return function(H)
         -- The cursor sink inserts in front of the line's own text, so match the anchor only.
         return table.concat(lines, "\n"):match(vim.pesc(base) .. "#L%d+%-?L?%d*")
       end
+      local function settled()
+        vim.wait(2000, function()
+          return commands.pending() == 0
+        end, 5)
+      end
       vim.api.nvim_buf_set_lines(0, 0, -1, false, { "a", "b", "c", "d", "e" })
       vim.api.nvim_win_set_cursor(0, { 2, 0 })
       commands._dispatch("location", { "remote" }, "cursor", { line1 = 3, line2 = 5 })
+      settled()
       H.eq(
         inserted(vim.api.nvim_buf_get_lines(0, 0, -1, false)),
         base .. "#L2",
@@ -469,6 +530,7 @@ return function(H)
       vim.api.nvim_buf_set_lines(0, 0, -1, false, { "a", "b", "c", "d", "e" })
       vim.api.nvim_win_set_cursor(0, { 2, 0 })
       commands._dispatch("location", { "remote", "range" }, "cursor", { line1 = 3, line2 = 5 })
+      settled()
       H.eq(
         inserted(vim.api.nvim_buf_get_lines(0, 0, -1, false)),
         base .. "#L3-L5",
@@ -492,9 +554,25 @@ return function(H)
     reset()
     state.rel = nil
     H.match(select(2, loc.get_remote(1, 1)) or "", "not tracked", "get_remote: untracked file")
+    reset()
+    state.sha = nil
+    H.match(
+      select(2, loc.get_remote(1, 1)) or "",
+      "could not resolve HEAD",
+      "get_remote: a repository without commits"
+    )
+    reset()
+    state.status_ok = false
+    H.match(
+      select(2, loc.get_remote(1, 1)) or "",
+      "could not resolve HEAD",
+      "get_remote: a failing status names HEAD, not a changed file"
+    )
 
-    for k, v in pairs(orig) do
-      lib_git[k] = v
+    for mod, fns in pairs(orig) do
+      for k, v in pairs(fns) do
+        targets[mod][k] = v
+      end
     end
 
     local _, _, _, want_remote = loc.parse_args({ "remote", "range" })

@@ -211,6 +211,10 @@ It reports an error outside a git repository, without an `origin` remote, for
 an unknown host or for an untracked file. A file with local changes still
 yields the link, with a warning that the line numbers may differ.
 
+git runs in the background, so the editor does not wait for it: the link is
+copied (or inserted into the buffer you asked from) once git has answered, a
+moment later. Asking again before that replaces the pending request.
+
 ### `timestamp [format] [--utc]`
 
 | Format | Example output |
@@ -399,6 +403,10 @@ the buffer's own directory, so it stays correct after `:cd`).
 
 Requires `git` in `PATH`. On a detached HEAD, `branch` reports an error
 rather than returning the literal string `HEAD`.
+
+`hash` and `branch` are read from the files in `.git` (no git process);
+`short` and `tag` ask git in the background, and the result arrives a moment
+later.
 
 ### `linecount` / `bufnr`
 

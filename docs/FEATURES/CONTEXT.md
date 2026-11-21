@@ -63,7 +63,8 @@ collapses back to `path:line` since there's no span to express. Path modes:
 `cwd` (default), `abs`, `lua`, and `nvim`, `repos`, `env` with the same
 semantics as `filepath` (`$REPOS_DIR/foo.nvim/lua/x.lua:42` is the readable,
 machine-independent form for notes and reviews). `remote` builds a forge
-permalink to the current commit instead (`get_remote`, on top of
+permalink to the current commit instead (`get_remote`, `get_remote_async`
+for the commands, on top of
 `lib.nvim.git.remote`).
 
 - **Module:** `ops/location.lua` (`get`, `get_range`, `parse_args`)
@@ -112,7 +113,8 @@ directory (not the current working directory), so it stays correct after
 `:cd`. On a detached HEAD, `branch` reports an error instead of the
 literal string `HEAD`.
 
-- **Module:** `ops/git.lua` (`get`, `parse_args`)
+- **Module:** `ops/git.lua` (`get`, `get_async`, `parse_args`); `hash` and
+  `branch` come from the `.git` files (`util/git_files.lua`), no process
 - **Usercmds:** `:Insert git [mode]`, `:Copy git [mode]`
 
 Requires `git` in `PATH`.

@@ -102,9 +102,9 @@ return {
 
     { lua = [[_G.fresh("")]] },
     { keys = ":Insert git branch<CR>" },
-    { expect = [[_G.eq(_G.line(), "sheet-branch")]], note = "the branch of a real repository" },
+    { wait = [[_G.line() == "sheet-branch"]], note = "the branch of a real repository" },
     { keys = ":Copy git branch<CR>" },
-    { expect = [[_G.eq(_G.clip(), "sheet-branch")]], note = ":Copy git branch" },
+    { wait = [[_G.clip() == "sheet-branch"]], note = ":Copy git branch" },
 
     {
       lua = [[_G.fresh("a", "b", "c"); vim.fn.setreg("+", ""); vim.api.nvim_win_set_cursor(0, { 3, 0 }); vim.cmd("normal! $")]],
