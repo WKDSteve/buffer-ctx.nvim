@@ -10,6 +10,27 @@ return function(H)
   local commands = require("buffer_ctx.commands")
   local sha = string.rep("c", 40)
 
+  -- A clipboard provider that loses every copy, set before anything copies: Neovim keeps the provider it found
+  -- first (on Windows that can be win32yank.exe, the machine's real clipboard). lib.nvim then goes to the OS tool,
+  -- which the stand-in below records and never runs.
+  local saved_clipboard = vim.g.clipboard
+  vim.g.clipboard = {
+    name = "lost",
+    copy = {
+      ["+"] = function() end,
+      ["*"] = function() end,
+    },
+    paste = {
+      ["+"] = function()
+        return { {}, "v" }
+      end,
+      ["*"] = function()
+        return { {}, "v" }
+      end,
+    },
+    cache_enabled = 0,
+  }
+
   -- A repository made of files only: HEAD on main, origin on GitHub, one loose ref.
   local root = vim.fn.tempname():gsub("\\", "/")
   vim.fn.mkdir(root .. "/.git/refs/heads", "p")
@@ -214,6 +235,17 @@ return function(H)
   )
   clip.copy = real_copy
 
+  -- A copy that does not go through the command (a keymap, :Mark yank) also wins over a pending git answer.
+  fresh()
+  commands._dispatch("git", { "short" }, "clip")
+  clip.copy("yanked elsewhere", function() end)
+  answer_all(starts)
+  H.ok(settled(), "copy git short, then a yank: settles")
+  vim.wait(50, function()
+    return false
+  end)
+  H.eq(vim.fn.getreg('"'), "yanked elsewhere", "the late git answer does not overwrite a yank")
+
   -- A detached HEAD is named from the file, no start either.
   vim.fn.writefile({ sha }, root .. "/.git/HEAD")
   fresh()
@@ -230,23 +262,6 @@ return function(H)
 
   -- :Copy without a clipboard provider: the OS tool (PowerShell on Windows) runs in the background. The command
   -- returns at once, nothing waits on it, and the report comes from the callback.
-  local saved_clipboard = vim.g.clipboard
-  vim.g.clipboard = {
-    name = "lost",
-    copy = {
-      ["+"] = function() end,
-      ["*"] = function() end,
-    },
-    paste = {
-      ["+"] = function()
-        return { {}, "v" }
-      end,
-      ["*"] = function()
-        return { {}, "v" }
-      end,
-    },
-    cache_enabled = 0,
-  }
   local said = {}
   local original_info, original_warn = notify.info, notify.warn
   notify.info = function(msg)

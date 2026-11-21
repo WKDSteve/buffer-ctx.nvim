@@ -12,6 +12,17 @@ local M = {}
 -- plain register write fails) when installed, fall back to setreg-only.
 local ok_lib_clipboard, lib_copy_to_clipboard = pcall(require, "lib.nvim.cross.copy_to_clipboard")
 
+-- Every copy asked for so far, whoever asked (commands, keymaps, :Mark yank).
+local copies = 0
+
+---How many copies were asked for so far. A copy that waits for something
+---first (git) compares it at the end and drops its text when a newer copy
+---came meanwhile, so the clipboard ends with what was asked last.
+---@return integer
+function M.copies()
+  return copies
+end
+
 ---@internal
 ---@param text string
 ---@return string
@@ -64,6 +75,7 @@ end
 ---@return string|nil err  human-readable reason when `ok` is false
 ---@return string|nil preview  first ~60 chars of `text`, for caller-side messages
 function M.copy(text, on_done)
+  copies = copies + 1
   if type(text) ~= "string" or text == "" then
     if on_done then
       vim.schedule(function()

@@ -155,11 +155,16 @@ local function later(label, sink, start)
   local token = {}
   inflight[key] = token
   local buf = vim.api.nvim_get_current_buf()
+  -- Copies elsewhere (a keymap, :Mark yank) do not pass `cancel`: compare the count instead.
+  local copies_at_start = clip.copies()
   local ok, handle = pcall(start, function(result, err)
     if inflight[key] ~= token then
       return
     end
     inflight[key] = nil
+    if sink == "clip" and clip.copies() ~= copies_at_start then
+      return -- a newer copy came meanwhile: the clipboard keeps it
+    end
     -- Whatever throws from here on would vanish in the callback: say it.
     local ok_sink, sink_err = pcall(function()
       if not result then
