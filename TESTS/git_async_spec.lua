@@ -25,6 +25,14 @@ return function(H)
   vim.fn.writefile({ sha }, root .. "/.git/refs/heads/main")
   vim.fn.writefile({ "one", "two", "three" }, root .. "/lua/a.lua")
 
+  -- The global git config is the machine's: `remote_url_fast` would ask git if it rewrote URLs. Point it here.
+  local saved_env = {
+    HOME = vim.env.HOME,
+    USERPROFILE = vim.env.USERPROFILE,
+    XDG_CONFIG_HOME = vim.env.XDG_CONFIG_HOME,
+  }
+  vim.env.HOME, vim.env.USERPROFILE, vim.env.XDG_CONFIG_HOME = root, root, root
+
   vim.cmd("edit! " .. vim.fn.fnameescape(root .. "/lua/a.lua"))
   local buf = vim.api.nvim_get_current_buf()
 
@@ -176,8 +184,12 @@ return function(H)
   -- The clipboard ends with what was asked last: a copy made now drops the one still waiting for git.
   local clip = require("buffer_ctx.util.clip")
   local real_copy, copied = clip.copy, {}
-  clip.copy = function(s)
+  clip.copy = function(s, cb)
     copied[#copied + 1] = s
+    if cb then
+      cb(true, nil, s)
+      return nil
+    end
     return true, nil, s
   end
   fresh()
@@ -216,7 +228,62 @@ return function(H)
   H.eq(#starts, 0, "git branch on a detached HEAD: no git start")
   H.match(errs[1] or "", "detached HEAD", "git branch on a detached HEAD: says so")
 
+  -- :Copy without a clipboard provider: the OS tool (PowerShell on Windows) runs in the background. The command
+  -- returns at once, nothing waits on it, and the report comes from the callback.
+  local saved_clipboard = vim.g.clipboard
+  vim.g.clipboard = {
+    name = "lost",
+    copy = {
+      ["+"] = function() end,
+      ["*"] = function() end,
+    },
+    paste = {
+      ["+"] = function()
+        return { {}, "v" }
+      end,
+      ["*"] = function()
+        return { {}, "v" }
+      end,
+    },
+    cache_enabled = 0,
+  }
+  local said = {}
+  local original_info, original_warn = notify.info, notify.warn
+  notify.info = function(msg)
+    said[#said + 1] = msg
+  end
+  notify.warn = function(msg)
+    said[#said + 1] = msg
+  end
+  fresh()
+  ok, err = pcall(commands._dispatch, "bufnr", {}, "clip")
+  H.ok(ok, "copy: the command does not wait for the clipboard tool (" .. tostring(err) .. ")")
+  H.eq(table.concat(waited, " | "), "", "copy: no blocking wait")
+  H.eq(table.concat(said, " | "), "", "copy: nothing reported before the copy is done")
+  H.eq(vim.fn.getreg('"'), tostring(buf), "copy: the unnamed register holds the text at once")
+  if vim.fn.has("win32") == 1 then
+    H.eq(#starts, 1, "copy: one clipboard tool started on Windows")
+    H.match(
+      table.concat(starts[1] and starts[1].cmd or {}, " "),
+      "powershell",
+      "copy: it is PowerShell"
+    )
+  end
+  for _, s in ipairs(starts) do
+    if s.on_exit then -- a blocking start has none (and already failed its wait above)
+      s.on_exit({ code = 0, signal = 0, stdout = "", stderr = "" })
+    end
+  end
+  vim.wait(2000, function()
+    return #said > 0
+  end, 5)
+  H.eq(#said, 1, "copy: one report from the callback")
+  notify.info, notify.warn = original_info, original_warn
+  vim.g.clipboard = saved_clipboard
+
   vim.system = real_system
+  vim.env.HOME, vim.env.USERPROFILE, vim.env.XDG_CONFIG_HOME =
+    saved_env.HOME, saved_env.USERPROFILE, saved_env.XDG_CONFIG_HOME
   vim.cmd("bwipeout! " .. buf)
   vim.fn.delete(root, "rf")
 end

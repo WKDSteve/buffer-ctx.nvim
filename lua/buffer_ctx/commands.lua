@@ -78,6 +78,20 @@ local function cancel(key)
 end
 
 ---@internal
+--- Say how a copy went; it answers on a later tick (the OS clipboard tool,
+--- when one is needed, runs in the background).
+---@param ok boolean
+---@param err string|nil
+---@param preview string
+local function report_copy(ok, err, preview)
+  if ok then
+    notify.info("copied: " .. preview)
+  else
+    notify.warn(err or "copy failed")
+  end
+end
+
+---@internal
 --- Route a result to the chosen sink
 ---@param text string
 ---@param sink BufferCtx.Sink
@@ -88,12 +102,7 @@ local function sink_text(text, sink, opts)
       -- A copy asked for now wins over one still waiting for git.
       cancel("clip")
     end
-    local ok, err, preview = clip.copy(text)
-    if ok then
-      notify.info("copied: " .. preview)
-    else
-      notify.warn(err or "copy failed")
-    end
+    clip.copy(text, report_copy)
   else
     cursor.insert_text(text, opts)
   end
@@ -105,12 +114,7 @@ end
 local function sink_lines(lines, sink)
   if sink == "clip" then
     cancel("clip")
-    local ok, err, preview = clip.copy(table.concat(lines, "\n"))
-    if ok then
-      notify.info("copied: " .. preview)
-    else
-      notify.warn(err or "copy failed")
-    end
+    clip.copy(table.concat(lines, "\n"), report_copy)
   else
     cursor.insert_lines(lines)
   end

@@ -4,7 +4,9 @@ Four command trees, plus three standalone actions with no subcommands of
 their own:
 
 - **`:Insert {subcmd} [args…]`** — writes text at cursor position
-- **`:Copy   {subcmd} [args…]`** — copies text to the system clipboard
+- **`:Copy   {subcmd} [args…]`** — copies text to the system clipboard (the
+  unnamed register at once; without a clipboard provider the OS tool runs in
+  the background and "copied: …" follows when it is done)
 - **`:Format {subcmd} [args…]`** — buffer/selection formatting operations
 - **`:Mark   {subcmd}`**         — toggle per-line marks, clear them, and yank them to clipboard
 - **`:RevealInFm`**    — reveal the current buffer in the system file manager

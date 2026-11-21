@@ -158,22 +158,18 @@ end
 ---@internal
 ---The permalink steps, against a blocking or an asynchronous git job.
 ---
---- At most two git starts, together: `ls-files --full-name` (tracked? the
+--- Two git starts, together: `ls-files --full-name` (tracked? the
 --- repo-relative path; fails outside a repository) and `status --porcelain=v2
 --- --branch` on the file (HEAD's commit, and whether the file differs from it).
---- The origin URL comes from `.git/config`; only a config this reader cannot
---- follow (includes, insteadOf) asks `git remote get-url` afterwards.
+--- The origin URL comes from `.git/config` (`lib.nvim.git.remote_url_fast`;
+--- only a config it cannot follow, such as `insteadOf`, asks git, once per
+--- config content).
 ---@param req BufferCtx.RemoteRequest
 ---@param job BufferCtx.GitJob
 ---@param done fun(url: string|nil, err: string|nil, warn: string|nil)
 local function remote_steps(req, job, done)
-  local git_files = require("buffer_ctx.util.git_files")
   local remote_mod = require("lib.nvim.git.remote")
-  local info = git_files.find(req.dir)
-  local remote_url, unsure
-  if info then
-    remote_url, unsure = git_files.remote_url(info, "origin")
-  end
+  local remote_url = require("lib.nvim.git").remote_url_fast("origin", { dir = req.dir })
 
   local function finish(res)
     local ls, st = res.ls, res.st
@@ -225,21 +221,7 @@ local function remote_steps(req, job, done)
       "st",
       { "status", "--porcelain=v2", "--branch", "-z", "--untracked-files=no", "--", req.abs },
     },
-  }, function(res)
-    local in_repo = (res.ls and res.ls.ok) or (res.st and res.st.ok)
-    if in_repo and (not info or unsure) then
-      -- Only a config the file reader cannot follow costs a third start.
-      job.run({ "remote", "get-url", "--", "origin" }, function(r)
-        remote_url = r.ok and vim.trim(r.stdout or "") or nil
-        if remote_url == "" then
-          remote_url = nil
-        end
-        finish(res)
-      end)
-      return
-    end
-    finish(res)
-  end)
+  }, finish)
 end
 
 ---Get a permalink to the cursor line or line range on the git forge.

@@ -32,12 +32,14 @@ local function copy_action(get, what)
       notify.error(err or (what .. " failed"))
       return
     end
-    local copy_ok, copy_err, preview = require("buffer_ctx.util.clip").copy(result)
-    if copy_ok then
-      notify.info("copied: " .. preview)
-    else
-      notify.warn(copy_err or "copy failed")
-    end
+    -- Answers on a later tick: an OS clipboard tool, when needed, runs in the background.
+    require("buffer_ctx.util.clip").copy(result, function(copy_ok, copy_err, preview)
+      if copy_ok then
+        notify.info("copied: " .. preview)
+      else
+        notify.warn(copy_err or "copy failed")
+      end
+    end)
   end
 end
 

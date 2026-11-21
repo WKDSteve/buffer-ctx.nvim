@@ -48,6 +48,10 @@ return {
     { keys = ":Copy filepath<CR>" },
     { wait = [[#_G.calls() == 1]], note = "one OS clipboard tool was started" },
     {
+      wait = [[_G.noted("copied: ")]],
+      note = "the report comes once the tool is done (it runs in the background, the editor does not wait)",
+    },
+    {
       expect = [[not _G.noted("no clipboard provider")]],
       note = "reported as copied, not as a loss",
     },

@@ -392,12 +392,16 @@ function M.yank(bufnr, category)
     -- that is what gives mark.yank the lib.nvim fallback chain, the unnamed
     -- register write, and the missing-provider guard. clip.copy is a pure
     -- sink now (returns status only), so this caller owns the notification.
-    local copy_ok, copy_err = clip.copy(table.concat(text, "\n"))
-    if copy_ok then
-      notify.info("Copied " .. #text .. " marked line(s) to clipboard")
-    else
-      notify.warn(copy_err or "copy failed")
-    end
+    -- The answer comes on a later tick (an OS clipboard tool, when needed,
+    -- runs in the background; lib.nvim keeps the copies in order).
+    local count = #text
+    clip.copy(table.concat(text, "\n"), function(copy_ok, copy_err)
+      if copy_ok then
+        notify.info("Copied " .. count .. " marked line(s) to clipboard")
+      else
+        notify.warn(copy_err or "copy failed")
+      end
+    end)
   else
     notify.warn("No marked lines to copy")
   end

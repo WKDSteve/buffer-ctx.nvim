@@ -84,7 +84,7 @@ return {
     { lua = [[vim.fn.cursor(1, 2)]] },
     { keys = ":Copy mdlink<CR>" },
     { expect = [[_G.eq(_G.clip(), "[a.md](docs/a.md)")]], note = "the same link on the clipboard" },
-    { expect = [[_G.noted("copied: [a.md](docs/a.md)")]], note = "it says so" },
+    { wait = [[_G.noted("copied: [a.md](docs/a.md)")]], note = "it says so" },
     {
       expect = [[_G.eq(_G.text(), "kept") and _G.eq(_G.cur(), 1)]],
       note = "buffer, cursor untouched",

@@ -18,7 +18,7 @@ return {
     { keys = ":Copy filepath<CR>" },
     { expect = [[_G.eq(_G.clip(), _G.rel)]], note = "cwd-relative with forward slashes on +" },
     { expect = [[_G.eq(vim.fn.getreg('"'), _G.rel)]], note = "and on the unnamed register" },
-    { expect = [[_G.noted("copied: " .. _G.rel)]], note = "it says what it copied" },
+    { wait = [[_G.noted("copied: " .. _G.rel)]], note = "it says what it copied" },
     { keys = ":Copy filepath abs<CR>" },
     { expect = [[_G.eq(_G.clip(), _G.abs)]], note = "absolute" },
     { keys = ":Copy filepath lua<CR>" },

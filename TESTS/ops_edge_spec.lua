@@ -374,21 +374,17 @@ return function(H)
     vim.env.REPOS_DIR = saved_repos_dir
   end
 
-  -- location-remote-permalink: `lib.nvim.git`'s runners and the `.git` file reader are stubbed, so no real
-  -- remote is needed. git answers by verb: `ls-files` (tracked path), `status` (HEAD, differs), `remote get-url`
-  -- (only when the config file reader is unsure).
+  -- location-remote-permalink: `lib.nvim.git`'s runners and `remote_url_fast` are stubbed, so no real remote is
+  -- needed. git answers by verb: `ls-files` (tracked path), `status` (HEAD, differs).
   do
     local loc = require("buffer_ctx.ops.location")
     local lib_git = require("lib.nvim.git")
-    local git_files = require("buffer_ctx.util.git_files")
     local sha = string.rep("a", 40)
     local state
     local function reset()
       state = {
         repo = true,
         url = "git@github.com:me/proj.git",
-        unsure = false,
-        git_url = nil,
         rel = "lua/p/x.lua",
         sha = sha,
         dirty = false,
@@ -412,18 +408,15 @@ return function(H)
           out = out .. "1 .M N... 100644 100644 100644 " .. sha .. " " .. sha .. " lua/p/x.lua\0"
         end
         return { ok = true, code = 0, stdout = out }
-      elseif args[1] == "remote" then
-        return {
-          ok = state.git_url ~= nil,
-          code = state.git_url and 0 or 2,
-          stdout = state.git_url or "",
-        }
       end
       error("unexpected git verb " .. tostring(args[1]))
     end
-    local orig = { lib_git = {}, git_files = {} }
+    local orig = { lib_git = {} }
     local stubs = {
       lib_git = {
+        remote_url_fast = function()
+          return state.url
+        end,
         run = function(args)
           return answer(args)
         end,
@@ -435,16 +428,8 @@ return function(H)
           return { stop = function() end }
         end,
       },
-      git_files = {
-        find = function()
-          return state.repo and { gitdir = "g", commondir = "g", top = "t" } or nil
-        end,
-        remote_url = function()
-          return state.url, state.unsure
-        end,
-      },
     }
-    local targets = { lib_git = lib_git, git_files = git_files }
+    local targets = { lib_git = lib_git }
     for mod, fns in pairs(stubs) do
       for k, v in pairs(fns) do
         orig[mod][k] = targets[mod][k]
@@ -488,14 +473,6 @@ return function(H)
       "ls-files,status",
       "get_remote: ls-files and status, nothing else"
     )
-    reset()
-    state.unsure, state.url, state.git_url = true, nil, "https://github.com/c/d.git"
-    H.eq(
-      loc.get_remote(1, 1),
-      "https://github.com/c/d/blob/" .. sha .. "/lua/p/x.lua#L1",
-      "get_remote: a config the reader cannot follow asks git remote get-url"
-    )
-    H.eq(#state.verbs, 3, "get_remote: the remote fallback is the third start")
 
     -- Through the command: without `range`, a command range / stale visual marks
     -- must not turn the link into a span; with `range` they do.
