@@ -65,7 +65,7 @@ return function(H)
       elseif v == "status" then
         out = "# branch.oid " .. sha .. "\0# branch.head main\0"
       elseif v == "rev-parse" then
-        out = "ccccccc\n"
+        out = "abc1234\n"
       end
       start.on_exit({ code = 0, signal = 0, stdout = out, stderr = "" })
     end
@@ -161,7 +161,46 @@ return function(H)
   H.eq(table.concat(waited, " | "), "", "git short: no blocking wait")
   answer_all(starts)
   H.ok(settled(), "git short: settles")
-  H.match(vim.api.nvim_get_current_line(), "ccccccc", "git short: inserted from the callback")
+  H.match(vim.api.nvim_get_current_line(), "abc1234", "git short: inserted from the callback")
+
+  -- Two different inserts while git is busy: both land (pending per command and mode).
+  fresh()
+  commands._dispatch("git", { "short" }, "cursor")
+  commands._dispatch("git", { "hash" }, "cursor")
+  answer_all(starts)
+  H.ok(settled(), "git short + hash: both settle")
+  local both = vim.api.nvim_get_current_line()
+  H.match(both, "abc1234", "git short + hash: the short hash lands")
+  H.match(both, sha, "git short + hash: the full hash lands too")
+
+  -- The clipboard ends with what was asked last: a copy made now drops the one still waiting for git.
+  local clip = require("buffer_ctx.util.clip")
+  local real_copy, copied = clip.copy, {}
+  clip.copy = function(s)
+    copied[#copied + 1] = s
+    return true, nil, s
+  end
+  fresh()
+  commands._dispatch("git", { "short" }, "clip")
+  commands._dispatch("git", { "hash" }, "clip")
+  answer_all(starts)
+  H.ok(settled(), "copy git short, then hash: settles")
+  H.eq(table.concat(copied, ","), sha, "copy git short, then hash: only the hash is copied")
+  copied = {}
+  fresh()
+  commands._dispatch("git", { "short" }, "clip")
+  commands._dispatch("bufnr", {}, "clip")
+  H.eq(commands.pending(), 0, "a synchronous copy drops the pending one")
+  answer_all(starts)
+  vim.wait(50, function()
+    return false
+  end)
+  H.eq(
+    table.concat(copied, ","),
+    tostring(buf),
+    "the late git answer does not overwrite the clipboard"
+  )
+  clip.copy = real_copy
 
   -- A detached HEAD is named from the file, no start either.
   vim.fn.writefile({ sha }, root .. "/.git/HEAD")

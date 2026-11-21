@@ -61,13 +61,33 @@ local function resolve_kit()
   return pcall(require, "ui.kit")
 end
 
+-- The requests still waiting for git, by target (see `later`): a newer one
+-- stops the older, whose answer would come late and overwrite the newer.
+---@type table<string, { handle?: { stop: fun() } }>
+local inflight = {}
+
+---@internal
+--- Drop the pending request of `key`: kill its git, never answer it.
+---@param key string
+local function cancel(key)
+  local prev = inflight[key]
+  inflight[key] = nil
+  if prev and prev.handle then
+    pcall(prev.handle.stop)
+  end
+end
+
 ---@internal
 --- Route a result to the chosen sink
 ---@param text string
 ---@param sink BufferCtx.Sink
----@param opts? { link?: boolean }  `link`: the text is a Markdown link, put the cursor into it when inserting
+---@param opts? { link?: boolean, pending?: boolean }  `link`: the text is a Markdown link, put the cursor into it when inserting; `pending`: the answer of a `later` request
 local function sink_text(text, sink, opts)
   if sink == "clip" then
+    if not (opts and opts.pending) then
+      -- A copy asked for now wins over one still waiting for git.
+      cancel("clip")
+    end
     local ok, err, preview = clip.copy(text)
     if ok then
       notify.info("copied: " .. preview)
@@ -84,6 +104,7 @@ end
 ---@param sink BufferCtx.Sink
 local function sink_lines(lines, sink)
   if sink == "clip" then
+    cancel("clip")
     local ok, err, preview = clip.copy(table.concat(lines, "\n"))
     if ok then
       notify.info("copied: " .. preview)
@@ -109,26 +130,24 @@ local function cfg(key)
   return type(section) == "table" and section or {}
 end
 
--- The requests still waiting for git, one per command: a newer one stops the
--- older, whose answer would come late and land wherever the cursor is then.
----@type table<string, { handle?: { stop: fun() } }>
-local inflight = {}
-
 ---@internal
 --- Run a command whose result comes later (git in the background) and route
 --- the answer to the sink once it is there. `start(on_done)` starts the
 --- request and returns its handle; `on_done(result, err)` is called on the
---- main loop. Only the newest request of a `key` answers. An insert goes into
---- the buffer that was current when asked, or not at all.
----@param key string  names the command, also in messages
+--- main loop. An insert goes into the buffer that was current when asked, or
+--- not at all.
+---
+--- One pending request per target: every `:Copy` shares the clipboard (a
+--- newer copy, also a synchronous one, drops the older pending one, so the
+--- clipboard ends with what was asked last); an insert is pending per command
+--- and mode (`:Insert git short` and `:Insert git hash` both land, a repeated
+--- `:Insert location remote` replaces the older).
+---@param label string  names the command (key of an insert, and in messages)
 ---@param sink BufferCtx.Sink
 ---@param start fun(on_done: fun(result: string|nil, err: string)): { stop: fun() }
-local function later(key, sink, start)
-  local prev = inflight[key]
-  inflight[key] = nil
-  if prev and prev.handle then
-    pcall(prev.handle.stop)
-  end
+local function later(label, sink, start)
+  local key = sink == "clip" and "clip" or label
+  cancel(key)
   local token = {}
   inflight[key] = token
   local buf = vim.api.nvim_get_current_buf()
@@ -142,20 +161,20 @@ local function later(key, sink, start)
       if not result then
         notify.error(err)
       elseif sink ~= "clip" and vim.api.nvim_get_current_buf() ~= buf then
-        notify.warn(key .. ": the buffer changed before git answered, nothing inserted")
+        notify.warn(label .. ": the buffer changed before git answered, nothing inserted")
       else
-        sink_text(result, sink)
+        sink_text(result, sink, { pending = true })
       end
     end)
     if not ok_sink then
-      notify.error(key .. ": " .. tostring(sink_err))
+      notify.error(label .. ": " .. tostring(sink_err))
     end
   end)
   if not ok then
     if inflight[key] == token then
       inflight[key] = nil
     end
-    notify.error(key .. ": " .. tostring(handle))
+    notify.error(label .. ": " .. tostring(handle))
   elseif inflight[key] == token then
     token.handle = handle
   end
@@ -262,7 +281,7 @@ local DISPATCH = {
 
   git = function(fargs, sink)
     local mode = git_op.parse_args(fargs)
-    later("git", sink, function(on_done)
+    later("git " .. mode, sink, function(on_done)
       return git_op.get_async(mode, function(result, err)
         on_done(result, err or "git failed")
       end)
