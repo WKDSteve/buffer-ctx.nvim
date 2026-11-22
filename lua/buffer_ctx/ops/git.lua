@@ -43,27 +43,27 @@ local ARGS = {
 ---The steps of one mode against a blocking or an asynchronous git job.
 ---
 --- `branch` and `hash` come from the `.git` files (HEAD, the branch's ref,
---- `packed-refs`) without a process; `short` (only git knows the
---- abbreviation length) and `tag` start one git, and so does whatever the
---- files cannot answer exactly.
+--- `packed-refs`; `lib.nvim.git.files.head`) without a process; `short`
+--- (only git knows the abbreviation length) and `tag` start one git, and so
+--- does whatever the files cannot answer exactly (`unsure`: a reftable,
+--- `GIT_DIR` in the environment, ...), no repository and an unborn branch.
 ---@param mode string  a valid mode
 ---@param dir string
 ---@param job BufferCtx.GitJob
 ---@param done fun(result: string|nil, err: string|nil)
 local function steps(mode, dir, job, done)
   if mode == "branch" or mode == "hash" then
-    local git_files = require("buffer_ctx.util.git_files")
-    local info = git_files.find(dir)
-    local head = info and git_files.head(info)
-    if head and mode == "branch" then
-      if head.branch then
-        return done(head.branch, nil)
+    local head, unsure = require("lib.nvim.git.files").head(dir)
+    if head and not unsure then
+      if mode == "branch" then
+        if head.branch then
+          return done(head.branch, nil)
+        end
+        return done(nil, DETACHED)
       end
-      return done(nil, DETACHED)
-    end
-    local sha = head and info and git_files.head_sha(info)
-    if sha then
-      return done(sha, nil)
+      if head.sha then
+        return done(head.sha, nil)
+      end
     end
   end
 

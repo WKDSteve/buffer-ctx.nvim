@@ -114,7 +114,8 @@ directory (not the current working directory), so it stays correct after
 literal string `HEAD`.
 
 - **Module:** `ops/git.lua` (`get`, `get_async`, `parse_args`); `hash` and
-  `branch` come from the `.git` files (`util/git_files.lua`), no process
+  `branch` come from the `.git` files (`lib.nvim.git.files.head`), no
+  process
 - **Usercmds:** `:Insert git [mode]`, `:Copy git [mode]`
 
 Requires `git` in `PATH`.

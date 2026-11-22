@@ -182,6 +182,42 @@ return function(H)
   H.ok(settled(), "git hash: settles")
   H.match(vim.api.nvim_get_current_line(), sha, "git hash: inserted from the ref file")
 
+  -- A packed ref answers without a start too (no loose file for main).
+  local packed_sha = string.rep("d", 40)
+  vim.fn.rename(root .. "/.git/refs/heads/main", root .. "/.git/main.loose")
+  vim.fn.writefile(
+    { "# pack-refs with: peeled fully-peeled sorted", packed_sha .. " refs/heads/main" },
+    root .. "/.git/packed-refs"
+  )
+  fresh()
+  commands._dispatch("git", { "hash" }, "cursor")
+  H.eq(#starts, 0, "git hash: no git start, packed-refs has the commit")
+  H.ok(settled(), "git hash (packed): settles")
+  H.match(vim.api.nvim_get_current_line(), packed_sha, "git hash: inserted from packed-refs")
+  vim.fn.delete(root .. "/.git/packed-refs")
+  vim.fn.rename(root .. "/.git/main.loose", root .. "/.git/refs/heads/main")
+
+  -- A reftable repository: the files cannot answer the way git would, so git is asked, in the background.
+  vim.fn.mkdir(root .. "/.git/reftable", "p")
+  vim.fn.writefile(
+    { "0x000000000001-0x000000000001-00000000.ref" },
+    root .. "/.git/reftable/tables.list"
+  )
+  fresh()
+  ok, err = pcall(commands._dispatch, "git", { "hash" }, "cursor")
+  H.ok(ok, "git hash (reftable): the command does not wait for git (" .. tostring(err) .. ")")
+  H.eq(#starts, 1, "git hash (reftable): one git start")
+  H.eq(verb(starts[1] or { cmd = {} }), "rev-parse", "git hash (reftable): git rev-parse")
+  H.eq(table.concat(waited, " | "), "", "git hash (reftable): no blocking wait")
+  answer_all(starts)
+  H.ok(settled(), "git hash (reftable): settles")
+  H.match(
+    vim.api.nvim_get_current_line(),
+    "abc1234",
+    "git hash (reftable): inserted from git's answer"
+  )
+  vim.fn.delete(root .. "/.git/reftable", "rf")
+
   -- :Insert git short still asks git (only git knows the abbreviation), without waiting.
   fresh()
   ok, err = pcall(commands._dispatch, "git", { "short" }, "cursor")
