@@ -64,27 +64,7 @@ local KNOWN = {
 -- this, sanitize() would misreport a deliberate `false` as "must be a table".
 local BOOL_OVERRIDABLE = { keymaps = true, format = true, mark = true, reveal = true }
 
----@internal
----`key` with the nearest known one as a hint when there is a plausible one.
----@param key any
----@param known table<string, any>
----@param prefix string
----@return string
-local function describe_unknown(key, known, prefix)
-  local levenshtein = require("lib.lua.strings.distance").levenshtein
-  local name = tostring(key)
-  local best, best_distance = nil, nil
-  for candidate in pairs(known) do
-    local d = levenshtein(name, candidate)
-    if d <= 3 and (best_distance == nil or d < best_distance) then
-      best, best_distance = candidate, d
-    end
-  end
-  if best then
-    return string.format("unknown option '%s%s' (did you mean '%s%s'?)", prefix, name, prefix, best)
-  end
-  return string.format("unknown option '%s%s'", prefix, name)
-end
+local describe_unknown = require("lib.lua.config.schema").describe_unknown
 
 ---@internal
 ---Whether `value` satisfies leaf spec `spec` (`true` = any value accepted
