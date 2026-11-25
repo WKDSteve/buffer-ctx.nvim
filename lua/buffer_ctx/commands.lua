@@ -611,21 +611,7 @@ function M._dispatch(subcmd, fargs, sink, ctx)
 end
 
 ---@internal
----@param list string[]
----@param lead string
----@return string[]
-local function prefix(list, lead)
-  if lead == "" then
-    return list
-  end
-  local out = {}
-  for _, v in ipairs(list) do
-    if v:sub(1, #lead) == lead then
-      out[#out + 1] = v
-    end
-  end
-  return out
-end
+local prefix = require("lib.nvim.bindings.usercmd.prefix")
 
 -- Dynamically-populated first-token completion for the three subcommands
 -- whose valid values come from user config rather than a fixed list.
