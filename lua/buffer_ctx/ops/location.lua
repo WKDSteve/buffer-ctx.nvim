@@ -205,7 +205,7 @@ local function remote_steps(req, job, done)
       return done(nil, "git: could not resolve HEAD (no commits yet?)")
     end
 
-    local url = remote_mod.build(kind, remote, sha, rel, req.line1, req.line2)
+    local url = remote_mod.build(kind, remote, sha, rel, req.line1, req.line2, { ref = "commit" })
     local warn
     if req.modified then
       warn = "buffer has unsaved changes: line numbers may differ from the commit"

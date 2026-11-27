@@ -455,6 +455,12 @@ return function(H)
       "https://gitlab.com/g/r/-/blob/" .. sha .. "/lua/p/x.lua#L1",
       "get_remote: GitLab form"
     )
+    state.url = "https://codeberg.org/g/r.git"
+    H.eq(
+      loc.get_remote(1, 1),
+      "https://codeberg.org/g/r/src/commit/" .. sha .. "/lua/p/x.lua#L1",
+      "get_remote: Codeberg links /src/commit/<sha>, not /src/branch/<sha>"
+    )
 
     reset()
     local _, _, clean_warn = loc.get_remote(1, 1)
